@@ -75,8 +75,8 @@ set ln x = over ln (const x)
 _1 :: Functor f => (a -> f a) -> (a,b) -> f (a,b)
 _1 f (x,y) = fmap (\a -> (a, y)) (f x)
 
-{- view _1 (1,2) -> 1
-   set _1 3 (1,2) -> (3,2)
+{- view _1 (1,2)      -> 1
+   set  _1 3 (1,2)    -> (3,2)
    over _1 (+3) (1,2) -> (4, 2)
 -}
 data User = User { name :: String, age :: Int } deriving Show
