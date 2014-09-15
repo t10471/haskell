@@ -5,14 +5,22 @@
 
 ---------
 
-- A1.hs  
+- Lens1.hs  
   UserとProjectを定義し、setOwnerNameをつかった単純な値の変更
-- A2.hs  
+- Lens2.hs  
   NaiveLensにviewとsetを定義。レコード構文の説明
-- A3.hs  
+- Lens3.hs  
   NaiveLensにviewとoverを定義。constの説明
-- A4.hs  
+- Lens4.hs  
   Lensの完成。
+- Lens5.hs  
+  Traversableを使った繰り返しのあるLens
+- Lens6.hs  
+  Lens5の本当のライブラリを使用したversion
+- Foldable.hs  
+  Data.Foldableの説明
+- Traversable.hs  
+  Data.Traversableの説明
 - NewType.hs  
   Pair1、Pair2を使って、タプルを持つnewTypeの説明
 
@@ -21,7 +29,7 @@
 -------
 
 ```
-runghc A1.hs
+runghc Lens1.hs
 ```
 
 ## ghciのコマンド
