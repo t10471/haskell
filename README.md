@@ -47,3 +47,15 @@ runghc Lens1.hs
 - :kind type   
     typeの類を推論し、印字する。typeは任意の型式で、Either Intのような型構築子の部分適用であっても構わない。
 
+## いろろなコマンド
+
+------
+
+```
+ghc-pkg list
+ghc-pkg describe persistent-1.3.3
+apt-get install libghc-pcre-light-dev libpcrecpp0 libpcre3-dev
+cabal list --installed
+ghc-pkg unregister persistent-2.1
+```
+
