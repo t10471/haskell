@@ -1,0 +1,48 @@
+u Abs \x y. App Var x Var y
+inferTerm Abs v::Term Abs \y. App Var x Var y
+inferTerm Abs v::Term App Var x Var y
+inferTerm App inferTerm t::Term Var x
+inferTerm Abs extendLocal x::VarId "y"
+inferTerm Abs extendLocal x::VarId "x"
+fu []
+inferTerm Abs extendLocal aa::Env []
+inferTerm Abs extendLocal xx::MonoType a0
+inferTerm Abs extendLocal aa::Env [x : All . a0]
+inferTerm Abs extendLocal xx::MonoType a1
+inferTerm App inferTerm aa::Env [x : All . a0,
+ y : All . a1]
+inferTerm Var domEnv aa::[VarId] ["x","y"]
+inferTerm Var x::VarId "x"
+inferTerm Var specialiseI ss::PolyType All . a0
+inferTerm App inferTerm t::Term Var y
+inferTerm App inferTerm aa::Env [x : All . a0,
+ y : All . a1]
+inferTerm Var domEnv aa::[VarId] ["x","y"]
+inferTerm Var x::VarId "y"
+inferTerm Var specialiseI ss::PolyType All . a1
+specialiseI tt::MonoType a0
+zipp x []
+specialiseI applySubs::MonoType a0
+zipp x []
+    inferTerm Var substituteI tt::MonoType a0
+inferTerm Var returnI uu::MonoType a0
+specialiseI tt::MonoType a1
+zipp x []
+specialiseI applySubs::MonoType a1
+zipp x []
+inferTerm Var returnI uu::MonoType a1
+aa []
+inferTerm App unifyI tt::MonoType a0
+    inferTerm App unifyI uu::MonoType a1
+    inferTerm App unifyI xx::MonoType a2
+    inferTerm Abs substituteI xx::MonoType a0
+    inferTerm Abs substituteI xx::MonoType a1
+    inferTerm App substituteI xx::MonoType a2
+
+inferTerm Abs returnI uu::MonoType a1 -> a2
+inferTerm Abs returnI uu::MonoType a1
+inferTerm App returnI vv::MonoType a2
+inferTerm Abs returnI vv::MonoType a2
+inferTerm Abs returnI vv::MonoType a1 -> a2
+uu (a1 -> a2) -> a1 -> a2
+result generaliseI::PolyType All a1 a2. (a1 -> a2) -> a1 -> a2

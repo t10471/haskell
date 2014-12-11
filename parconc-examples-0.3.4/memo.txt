@@ -1,0 +1,240 @@
+ghciの起動方法
+:VimShellInteractive ghci -no-user-package-db -package-db /root/workspace/parconc-examples-0.3.4/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d
+
+評価及び弱頭部正規形について {{{
+
+    Prelude Data.Tuple> let x = 1 + 2 :: Int
+    Prelude Data.Tuple> let z = (x,x)
+    Prelude Data.Tuple> :sprint z
+    -- xは未評価
+    z = (_,_)
+    Prelude Data.Tuple> seq z ()
+    ()
+    Prelude Data.Tuple> :sprint z
+    z = (_,_)
+    -- swap (a,b) = (b,a)
+    Prelude Data.Tuple> let z = swap(x,x+1)
+    Prelude Data.Tuple> :sprint z
+    -- zは未評価
+    z = _
+    -- 評価する
+    Prelude Data.Tuple> seq z ()
+    ()
+    Prelude Data.Tuple> :sprint z
+    -- 弱頭部正規形により最初しか評価されない
+    z = (_,_)
+    Prelude Data.Tuple> seq x ()
+    ()
+    Prelude Data.Tuple> :sprint z
+    -- xまでしか評価されない
+    z = (_,3)
+}}}
+
+rpar.hs {{{
+-- -threadedオプションで並列性になる
+-- -O2は最適化
+-- -rtsoptsは実行時オプションの許可
+ghc -O2 rpar.hs -threaded -rtsopts
+
+-- RTS -N2で2コアを使用して実行するという意味
+./rpar 1 +RTS -N2
+time: 0.00s
+(24157817,14930352)
+time: 6.37s
+./rpar 2 +RTS -N2
+time: 2.51s
+(24157817,14930352)
+time: 6.55s
+./rpar 3 +RTS -N2
+time: 6.59s
+(24157817,14930352)
+time: 6.59s
+./rpar 4 +RTS -N2
+time: 6.35s
+(24157817,14930352)
+time: 6.35s
+}}}
+
+sudoku {{{
+sudoku1
+シーケンシャル
+ghc -O2 sudoku1.hs -rtsopts
+./sudoku1 sudoku17.1000.txt
+-sは実行時の統計情報を表示する
+./sudoku1 sudoku17.1000.txt +RTS -s
+
+sudoku2
+2分割
+-threadedは並列を許可 -eventlogはログ出力を許可
+ghc -O2 sudoku2.hs -rtsopts -threaded -eventlog
+./sudoku2 sudoku17.1000.txt +RTS -N2 -s -l
+
+sudoku3
+全て並列化
+
+sudoku4
+fileをそれぞれの行に分割している(IO版seq)を使用しているのでsudoku3より遅い
+}}}
+
+kmeans {{{
+ghc -O2 -package-db /root/workspace/parconc-examples-0.3.4/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d -threaded -rtsopts -eventlog kmeans.hs
+ghc --make -O2 -package-db /root/workspace/parconc-examples-0.3.4/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d GenSamples.hs
+./GenSample 5 500000 1000000 1010
+./kmeans seq
+
+点に近いクラスタへの振り分けをチャンクに分けて並列化
+64はチャンクの数
+./kmeans strat 64 +RTS -N2
+}}}
+
+rsa {{{
+rsa.hs 通常版
+ghc --make -O2 -optP-include -optPdist/build/autogen/cabal_macros.h -package-db /root/workspace/parconc-examples-0.3.4/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d ./rsa.hs
+echo "Hello World!" | ./rsa encrypt -
+echo "Hello World!" | ./rsa encrypt - | ./rsa decrypt -
+
+rsa1.hs parListを使った並列版
+一度にスパークを作成するので定数空間では処理できず、入力データ分の空間が必要になる
+ghc --make -O2 -optP-include -optPdist/build/autogen/cabal_macros.h -package-db /root/workspace/parconc-examples-0.3.4/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d ./rsa1.hs
+
+rsa2.hs parBufferを使った並列版
+parBufferの引数分のバッファサイズのみ作成する
+ghc --make -O2 -optP-include -optPdist/build/autogen/cabal_macros.h -package-db /root/workspace/parconc-examples-0.3.4/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d ./rsa2.hs
+
+Streamを使ったパイプライ並列
+ghc --make -O2 -optP-include -optPdist/build/autogen/cabal_macros.h -package-db /root/workspace/parconc-examples-0.3.4/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d ./rsa-pipeline.hs
+echo "Hello World!" | ./rsa-pipeline -
+}}}
+
+fwsparse {{{
+重み付き有向グラフの最短経路を求めるプログラム
+ghc --make -O2 -optP-include -optP../dist/build/autogen/cabal_macros.h -package-db /root/workspace/parconc-examples-0.3.4/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d ./fwsparse.hs
+./fwsparse 1000 800 +RTS -s
+並列版
+ghc --make -O2 -optP-include -optP../dist/build/autogen/cabal_macros.h -package-db /root/workspace/parconc-examples-0.3.4/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d -threaded -rtsopts ./fwsparse1.hs
+./fwsparse1 1000 800 +RTS -s
+./fwsparse1 1000 800 +RTS -N4 -s
+
+}}}
+
+timetable {{{
+見たいものがかぶらないような時間割を作成する
+発表枠 X トラック
+
+ghc --make -O2 -optP-include -optPdist/build/autogen/cabal_macros.h -package-db /root/workspace/parconc-examples-0.3.4/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d -rtsopts ./timetable.hs
+./timetable 4 3 11 10 3 +RTS -s
+
+timetable1の流れ
+maxTrack 2
+maxSlot  2
+allTalks [1,2,3,4]
+clashes  [[1,2], [2,3], [3,4], [1,4]]
+処理の流れ
+(0, 0, [], [], [1,2,3,4], [1,2,3,4])
+    4つに分岐(refine partialが4つを返す)し、それをmap generateで再帰する Justで止まる
+    (0,1,[],[1],[3],[2,3,4])      -> [(0,2,[],[3,1],[],[2,4])]   -> [(1,0,[[3,1]],[],[2,4],[2,4])]
+        2つに分岐
+        (1,1,[[3,1]],[2],[4],[4]) -> [(1,2,[[3,1]],[4,2],[],[])] -> [(2,0,[[4,2],[3,1]],[],[],[])]
+            Just soln [[4,2],[3,1]]
+        (1,1,[[3,1]],[4],[2],[2]) -> [(1,2,[[3,1]],[2,4],[],[])] -> [(2,0,[[2,4],[3,1]],[],[],[])]
+            Just soln [[2,4],[3,1]]
+    (0,1,[],[2],[4],[1,3,4])      -> [(0,2,[],[4,2],[],[1,3])]   -> [(1,0,[[4,2]],[],[1,3],[1,3])]
+        2つに分岐
+        (1,1,[[4,2]],[1],[3],[3]) -> [(1,2,[[4,2]],[3,1],[],[])] -> [(2,0,[[3,1],[4,2]],[],[],[])]
+            Just soln [[3,1],[4,2]]
+        (1,1,[[4,2]],[3],[1],[1]) -> [(1,2,[[4,2]],[1,3],[],[])] -> [(2,0,[[1,3],[4,2]],[],[],[])]
+            Just soln [[1,3],[4,2]]
+    (0,1,[],[3],[1],[1,2,4])      -> [(0,2,[],[1,3],[],[2,4])]   -> [(1,0,[[1,3]],[],[2,4],[2,4])]
+        2つに分岐
+        (1,1,[[1,3]],[2],[4],[4]) -> [(1,2,[1,3]],[4,2],[],[])]  -> [(2,0,[[4,2],[1,3]],[],[],[])]
+            Just soln [[4,2],[1,3]]
+        (1,1,[[1,3]],[4],[2],[2]) -> [(1,2,[[1,3]],[2,4],[],[])] -> [(2,0,[[2,4],[1,3]],[],[],[])]
+            Just soln [[2,4],[1,3]]
+    (0,1,[],[4],[2],[1,2,3])      -> [(0,2,[],[2,4],[],[1,3])]   -> [(1,0,[[2,4]],[],[1,3],[1,3])]
+        2つに分岐
+        (1,1,[[2,4]],[1],[3],[3]) -> [(1,2,[[2,4]],[3,1],[],[])] -> [(2,0,[[3,1],[2,4]],[],[],[])]
+            Just soln [[3,1],[2,4]]
+        (1,1,[[2,4]],[3],[1],[1]) -> [(1,2,[[2,4]],[1,3],[],[])] -> [(2,0,[[1,3],[2,4]],[],[],[])]
+            Just soln [[1,3],[2,4]]
+ghc --make -O2 -optP-include -optPdist/build/autogen/cabal_macros.h -package-db /root/workspace/parconc-examples-0.3.4/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d -rtsopts ./timetable1.hs
+./timetable1 4 3 11 10 3 +RTS -s
+ghc --make -O2 -optP-include -optPdist/build/autogen/cabal_macros.h -package-db /root/workspace/parconc-examples-0.3.4/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d -threaded -rtsopts ./timetable2.hs
+./timetable2 4 3 11 10 3 +RTS -N2 -s
+ghc --make -O2 -optP-include -optPdist/build/autogen/cabal_macros.h -package-db /root/workspace/parconc-examples-0.3.4/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d -threaded -rtsopts ./timetable3.hs
+./timetable3 4 3 11 10 3 +RTS -N2 -s
+}}}
+
+parinfer {{{
+cd parinfer 
+ghc --make -O2 -optP-include -optP../dist/build/autogen/cabal_macros.h -package-db /root/workspace/parconc-examples-0.3.4/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d -rtsopts ./parinfer.hs
+
+echo "a = 1; b = 2; c = a + b;" | ./parinfer
+types
+    [("+",All . Int -> Int -> Int),("*",All . Int -> Int -> Int),("-",All . Int -> Int -> Int),("/",All . Int -> Int -> Int)]
+initialEnv
+    [* : All . Int -> Int -> Int,
+     + : All . Int -> Int -> Int,
+     - : All . Int -> Int -> Int,
+     / : All . Int -> Int -> Int]
+parseBinds (alexScanTokens l)
+happyの解析結果
+    [("a",1),("b",2),("c",+ a b)]
+
+freeVarsをlistにした結果
+fu
+    ["+","a","b"]
+topenvからfuがキーのものを取得
+tfu
+    [All . Int -> Int -> Int,All . Int,All . Int]
+makeEnv (zip fu tfu) 
+    [+ : All . Int -> Int -> Int,
+     a : All . Int,
+     b : All . Int]
+
+x "c"
+x "b"
+x "a"
+
+u + a b
+u 2
+u 1
+
+aaa
+[]
+[]
+[+ : All . Int -> Int -> Int,
+ a : All . Int,
+ b : All . Int]
+
+Inferの中身の確認方法
+型   MkI (StateX Sub (StateX Counter (Maybe ((x, Sub), Counter))))
+処理 
+useM (("faild", emptySub), 0) (ddd (ddd (rep a) emptySub) 1)
+useM ((TVar "faild", emptySub), 0) (ddd (ddd (rep freshI) emptySub) 1)
+useM (([TVar "faild"], emptySub), 0) (ddd (ddd (rep (freshesI 3)) emptySub) 1)
+useM ((999, emptySub), 0) (ddd (ddd (rep getCounterI) emptySub) 1)
+
+let p = (\x -> useM ((TVar "faild", emptySub), 0) (ddd (ddd (rep x) emptySub) 0))
+let m = (freshI >>= (\x -> freshI >>= (\y -> returnI y)))
+
+freshesIの原理
+let pp = \x -> useM (([TVar "faild"], emptySub), 0) (ddd (ddd (rep (x)) emptySub) 0)
+pp $
+freshI           >>= (\x0  ->
+freshI           >>= (\x1  ->
+freshI           >>= (\x2  ->
+returnI[]        >>= (\xs0 ->
+returnI (x2:xs0) >>= (\xs1 ->
+returnI (x1:xs1) >>= (\xs2 ->
+returnI (x0:xs2)))))))
+
+
+tt::MonoType (a1 -> a2 -> a4) -> a1 -> a2 -> a4
+    zipp x ["a1","a2","a4"]
+    zipp y [a0,a1,a2]
+applySubs::MonoType (a0 -> a1 -> a2) -> a0 -> a1 -> a2
+
+getCounterI `thenI` (\c -> putCounterI (c+1) `thenI` (\() -> returnI (TVar ("a" ++ show c))))
+結果
+[("*",All . Int -> Int -> Int),("+",All . Int -> Int -> Int),("-",All . Int -> Int -> Int),("/",All . Int -> Int -> Int),("a",All . Int),("b",All . Int),("c",All . Int)]
+}}}
