@@ -1,0 +1,37 @@
+Haskellの関数は(->)であり、Functorである
+Functorは
+(a -> b) -> f a -> f b
+関数のFunctorは(.)で
+(b -> c) -> (a -> b) -> a -> c
+カッコをつけると以下になる
+(b -> c) -> (a -> b) -> (a -> c)
+
+Haskellでは部分関数か全関数かの判定は型からはできない
+scalaはFunction1が関数でPartialFUnctionが部分関数
+
+
+scalaの関数合成
+val f1: Int => Char = i => "string".charAt(i)
+val f2: Char => Int = c => c.toInt
+val f3 = f1.andThen(f2) //f2(f1(x))と同じ
+f3(2)
+
+val f1: Int => Int = i => i * 2
+val f2: String => Int = s => s.length
+val f3 = f1.compose(f2)　// f1(f2(x))と同じ
+f3("string")
+
+average = div . h
+    where   h [] = (0,0)
+            h (a:b) = (a+c,1+d)
+                where (c,d) = h b
+            div (a,b) = a/b
+
+(\(x, y) -> x / y) $ foldr (\x (y,z) -> (x+y, 1+z)) (0,0) [1, 2, 3]
+
+(\(x, y) -> x / y) . (foldr (\x (y,z) -> (x+y, 1+z)) (0,0) [1, 2, 3])
+
+(foldr (\x (y,z) -> (x+y, 1+z)) (0,0) [1, 2, 3]) . (\(x, y) -> x / y)
+
+((+) 2 1)(-) 2
+
