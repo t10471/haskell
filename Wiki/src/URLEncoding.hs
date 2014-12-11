@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 --
 -- $Id: URLEncoding.hs,v 1.2 2006/04/05 17:55:14 aamine Exp $
 --

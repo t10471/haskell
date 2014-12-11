@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 --
 -- $original Id: PathUtils.hs,v 1.9 2006/03/06 13:42:21 aamine Exp $
 --

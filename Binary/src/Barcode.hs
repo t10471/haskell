@@ -1,389 +1,74 @@
-module Barcode where
+-- | Library for working with EAN-13 barcodes.
+--
+--   Structure of an EAN-13 barcode:
+--
+--   * The first two digits describe the number system. This can either
+--     indicate the nationality of the manufacturer, or describe one of a few
+--     other categories, such as ISBN (book identifier) numbers.
+--
+--   * The next five digits are a manufacturer ID, assigned by a country's
+--     numbering authority.
+--
+--   * The five digits that follow are a product ID, assigned by the
+--     manufacturer. (Smaller manufacturers may have a longer manufacturer ID
+--     and shorter product ID, but they still add up to ten digits.)
+--
+--   * The last digit is a check digit, allowing a scanner to validate the
+--     digit string it scans.
+--
+module Barcode (
+    -- * Barcode Structure
+      checkDigit
+    -- Codes
+    , leftOddList, leftOddCodes, leftEvenList, leftEvenCodes
+    , rightList, rightCodes, parityList, parityCodes
+    , outerGuard, centerGuard
+) where
 
-import Mydebug
-import Data.Array(Array(..), (!), bounds, elems, indices,
-  ixmap, listArray, array)
 import Control.Applicative ((<$>))
-import Control.Monad (forM_)
-import Data.Char (digitToInt)
-import Data.Ix (Ix(..))
-import Data.List (foldl', group, sort, sortBy, tails)
-import Data.Maybe (catMaybes, listToMaybe)
-import Data.Ratio (Ratio)
-import Data.Word (Word8)
-import System.Environment (getArgs)
-import qualified Data.ByteString.Lazy.Char8 as L
-import qualified Data.Map as M
-import PNM (ParseState(..), Parse(..), parse,
-             parseWhileWith, parseWhile, parseByte, parseChar,
-             peekByte, peekChar, parseNat, parseBytes, identity, modfyOffset,
-             (==>), (==>&), w2c,getState, putState, bail, skipSpaces, assert)
+import Data.Array (Array)
 
+import Arrays
+
+-- | Calculates the check digit of a numeral represenation of a barcode.
+--
+--   Step 1: Multiply the sum of the odd position digits by 3
+--   Step 2: Sum the even position digits,
+--   Step 3: Sum the results from step 1 and step 2,
+--   Step 4: The check digit is 10 minus the result of step 3 modulo 10.
 checkDigit :: (Integral a) => [a] -> a
-checkDigit ds = 10 - (sum products `mod` 10)
-  where
-    products = mapEveryOther (*3) (reverse ds)
+checkDigit ds = 10 - (sum (mapEveryOther (* 3) (reverse ds)) `mod` 10)
+    where mapEveryOther f = zipWith ($) (cycle [f,id])
 
-mapEveryOther :: (a -> a) -> [a] -> [a]
-mapEveryOther f = zipWith ($) (cycle [f,id])
+-- | Various code representations.
+--   Each digit in the left group is encoded using either odd or even parity,
+--   with the parity chosen based on the bits of the first digit in the string.
+--   If a bit of the first digit is zero, the corresponding digit in the left
+--   group is encoded with even parity. A one bit causes the digit to be
+--   encoded with odd parity. This encoding is an elegant hack, chosen to make
+--   EAN-13 barcodes backwards compatible with the older UPC-A standard.
+leftOddList, leftEvenList, rightList, parityList :: [String]
+leftOddCodes, leftEvenCodes, rightCodes, parityCodes :: Array Int String
 
+leftOddCodes = listToArray leftOddList
 leftOddList = ["0001101", "0011001", "0010011", "0111101", "0100011",
                "0110001", "0101111", "0111011", "0110111", "0001011"]
 
-rightList = map complement <$> leftOddList
-  where
-    complement '0' = '1'
-    complement '1' = '0'
+leftEvenCodes = listToArray leftEvenList
 leftEvenList = map reverse rightList
 
-parityList =  ["111111", "110100", "110010", "110001", "101100",
-               "100110", "100011", "101010", "101001", "100101"]
+rightCodes = listToArray rightList
+rightList = map complement <$> leftOddList
+    where complement '0' = '1'
+          complement '1' = '0'
+          complement _   = error "unknown value"
 
-listToArray :: [a] -> Array Int a
-listToArray xs = listArray(0, l -1) xs
-  where
-    l = length xs
+parityCodes = listToArray parityList
+parityList = ["111111", "110100", "110010", "110001", "101100",
+              "100110", "100011", "101010", "101001", "100101"]
 
-leftOddCodes, leftEvenCodes, rightCodes, parityCodes :: Array Int String
-leftOddCodes  = listToArray leftOddList
-leftEvenCodes = listToArray leftEvenList
-rightCodes    = listToArray rightList
-parityCodes   = listToArray parityList
-
--- indices :: Ix i => Array i e -> [i]
--- return inex list
-foldA :: Ix k => (a -> b -> a) -> a -> Array k b -> a
-foldA f s a = go s (indices a)
-  where
-    go s (j:js) = let
-                    s' = f s (a ! j)
-                  in
-                    s' `seq` go s' js
-    go s _      = s
-
--- bounds :: Ix i => Array i e -> (i, i)
--- return index tuple
-foldA1 :: Ix k => (a -> a -> a) -> Array k a -> a
-foldA1 f a = foldA f (a ! fst (bounds a)) a
-
--- encodeEAN13 "012345678912"
--- see http://www5d.biglobe.ne.jp/~bar/spec/barspec.html
-encodeEAN13 :: String -> String
-encodeEAN13 = concat . encodeDigits . map digitToInt
-
-encodeDigits :: [Int] -> [String]
-encodeDigits s@(first:rest) =
-    outerGuard : lefties ++ centerGuard : righties ++ [outerGuard]
-  where
-    (left, right) = splitAt 5 rest
-    lefties  = zipWith leftEncode (parityCodes ! first) left
-    righties = map rightEncode (right ++ [checkDigit s])
-
-leftEncode :: Char -> Int -> String
-leftEncode '1'  = (leftOddCodes !)
-leftEncode '0'  = (leftEvenCodes !)
-
-rightEncode :: Int -> String
-rightEncode = (rightCodes !)
-
+outerGuard :: String
 outerGuard = "101"
+
+centerGuard :: String
 centerGuard = "01010"
-
-
-type Pixel = Word8
-type RGB   = (Pixel, Pixel, Pixel)
-type Pixmap = Array (Int, Int) RGB
-
-parseRawPPM :: Parse Pixmap
-parseRawPPM =
-  parseWhileWith w2c (/= '\n') ==> \header -> skipSpaces ==>&
-  assert (header == "P6") "invalid raw header" ==>&
-  parseNat ==> \width -> skipSpaces ==>&
-  parseNat ==> \height -> skipSpaces ==>&
-  parseNat ==> \maxValue ->
-  assert (maxValue == 255) "max value out of spec" ==>&
-  parseByte ==>&
-  parseTimes (width * height) parseRGB ==> \pxs ->
-  identity (listArray ((0,0),(height - 1, width - 1)) pxs)
-
-parseRGB :: Parse RGB
-parseRGB =
-  parseByte ==> \r ->
-  parseByte ==> \g ->
-  parseByte ==> \b ->
-  identity (r, g, b)
-
-parseTimes :: Int -> Parse a -> Parse [a]
-parseTimes 0 _ = identity []
-parseTimes n p = p ==> \x -> (x:) <$> parseTimes (n -1) p
-
-
-luminance :: (Pixel, Pixel, Pixel) -> Pixel
-luminance (r, g, b) = round(r' * 0.30 + g' * 0.59 + b' * 0.11)
-  where
-    r' = fromIntegral r
-    g' = fromIntegral g
-    b' = fromIntegral b
-
-type Greymap = Array (Int, Int) Pixel
-
-pixmapToGreymap :: Pixmap -> Greymap
-pixmapToGreymap = fmap luminance
-
-data Bit = Zero | One
-  deriving (Eq, Show)
-
-threshold :: (Ix k, Integral a) => Double -> Array k a -> Array k Bit
-threshold n a = binary <$> a
-  where
-    binary i | i < pivot = Zero
-             | otherwise = One
-    pivot    = round $ least + (greatest - least) * n
-    -- get minimum in Array
-    least    = fromIntegral $ choose (<) a
-    greatest = fromIntegral $ choose (>) a
-    choose f = foldA1 $ \ x y -> if f x y then x  else y
-
-type Run = Int
-type RunLength a = [(Run, a)]
-
--- encodeEAN13 "978013211467"
-runLength :: Eq a => [a] -> RunLength a
-runLength = map rle . group
-  where
-    rle xs = (length xs, head xs)
-
-runLengths :: Eq a => [a] -> [Run]
-runLengths = map fst . runLength
-
-type Score = Ratio Int
-
-scaleToOne :: [Run] -> [Score]
-scaleToOne xs = map divide xs
-  where
-    divide d = fromIntegral d / divisor
-    divisor  = fromIntegral (sum xs)
-
-type ScoreTable = [[Score]]
-
-asSRL :: [String] -> ScoreTable
-asSRL = map (scaleToOne . runLengths)
-
-leftOddSRL  = asSRL leftOddList
-leftEvenSRL = asSRL leftEvenList
-rightSRL    = asSRL rightList
-paritySRL   = asSRL parityList
-
-distance :: [Score] -> [Score] -> Score
-distance a b = sum . map abs $ zipWith (-) a b
-
-type Digit = Word8
-
-bestScores :: ScoreTable -> [Run] -> [(Score, Digit)]
-bestScores srl ps = take 3 . sort $ scores
-  where
-    -- list comprehension
-    scores = zip [distance d (scaleToOne ps) | d <- srl] digits
-    digits = [0..9]
-
-data Parity a = Even a | Odd a | None a
-                  deriving (Show)
-
-fromParity :: Parity a -> a
-fromParity (Even a) = a
-fromParity (Odd a)  = a
-fromParity (None a) = a
-
-parityMap :: (a -> b) -> Parity a -> Parity b
-parityMap f (Even a) = Even (f a)
-parityMap f (Odd a)  = Odd (f a)
-parityMap f (None a) = None (f a)
-
-instance Functor Parity where
-  fmap = parityMap
-
-on :: (a -> a -> b) -> (c -> a) -> c -> c -> b
-on  f g x y = g x `f` g y
-
-compareWithoutParity = compare `on` fromParity
-
-bestLeft :: [Run] -> [Parity (Score, Digit)]
-bestLeft ps = sortBy compareWithoutParity
-  ((map Odd (bestScores leftOddSRL ps)) ++
-   (map Even (bestScores leftEvenSRL ps)))
-
-bestRight :: [Run] -> [Parity (Score, Digit)]
-bestRight = map None . bestScores rightSRL
-
-chunkWith :: ([a] -> ([a], [a])) -> [a] -> [[a]]
-chunkWith _ [] = []
-chunkWith f xs = let (h, t) = f xs
-                 in h : chunkWith f t
-
-chunksOf :: Int -> [a] -> [[a]]
-chunksOf n = chunkWith (splitAt n)
-
--- barcde blask is Zero
-
-candidateDigits :: RunLength Bit -> [[Parity Digit]]
-candidateDigits ((_, One):_) = []
-candidateDigits rle | length rle < 59 = []
-candidateDigits rle
-    | any null match = []
-    | otherwise      = map (map (fmap snd)) match
-  where match = map bestLeft left ++ map bestRight right
-        left = chunksOf 4 . take 24 . drop 3 $ runLengths
-        right = chunksOf 4 . take 24 . drop 32 $ runLengths
-        runLengths = map fst rle
-
--- let input = zip (runLengths $ encodeEAN13 "978013211467") (cycle [Zero, One])
-
-{--
-M.empty
-M.singleton "foo" True
-let m = M.singleton "foo" 1 :: M.Map String Int
-case M.lookup "bar" m of {Just v -> "yay" ; Nothing -> "boo"}
-M.insert "quuux" 10 m
-M.insert "foo" 9999 m
-M.insertWith' (+) "zippity" 10 m
-M.insertWith' (+) "foo" 9999 m
-M.delete "foo" m
-
-m `M.union` M.singleton "quux" 1
-m `M.union` M.singleton "foo" 0
---}
-
-type Map a = M.Map Digit [a]
-type DigitMap = Map Digit
-type ParityMap = Map (Parity Digit)
-
-updateMap :: Parity Digit   -- new int
-          -> Digit           -- existing key
-          -> [Parity Digit] -- existing value
-          -> ParityMap      -- update map
-          -> ParityMap
-
-updateMap digit key seq = insertMap key (fromParity digit) (digit:seq)
-
-insertMap :: Digit -> Digit -> [a] -> Map a -> Map a
-insertMap key digit val m = val `seq` M.insert key' val m
-  where
-    key' = (key + digit) `mod` 10
-
-useDigit :: ParityMap -> ParityMap -> Parity Digit -> ParityMap
-useDigit old new digit =
-  -- M.foldrWithKey :: (k -> a -> b -> b) -> b -> M.Map k a -> b
-  -- M.foldrWithKey (updateMap (Even 2) )
-  -- :: ParityMap -> M.Map Digit [Parity Digit] -> ParityMap
-  new `M.union` M.foldrWithKey (updateMap digit ) M.empty old
-
-{--
-let single n = M.singleton n [Even n] :: ParityMap
-useDigit (single 1) M.empty (Even 1)
-useDigit (single 1) (single 2) (Even 2)
-
-let single' n = M.singleton n [n] :: Map Digit
-let single' n = M.singleton n [n] ::  DigitMap
-
-let single n = M.singleton n [Even n] :: ParityMap
-M.foldrWithKey (updateMap (Even 2) ) M.empty (single 4)
-
-insertMap 1 2 [3,4]  (M.singleton 5 [6])
-insertMap 8 (fromParity (Even 1)) ((Even 1):[(Even 2)]) (single 2)
---}
-
-incorporateDigits :: ParityMap -> [Parity Digit] -> ParityMap
-incorporateDigits old digits = foldl' (useDigit old) M.empty digits
-
-finalDigits :: [[Parity Digit]] -> ParityMap
-finalDigits = foldl' incorporateDigits (M.singleton 0 [])
-            . mapEveryOther (map (fmap (*3)))
-
-firstDigit :: [Parity a] -> Digit
-firstDigit = snd
-           . head
-           . bestScores paritySRL
-           . runLengths
-           . map parityBit
-           . take 6
-  where
-    parityBit (Even _) = Zero
-    parityBit (Odd  _) = One
-
-addFirstDigit :: ParityMap -> DigitMap
-addFirstDigit = M.foldrWithKey updateFirst M.empty
-
-updateFirst :: Digit -> [Parity Digit] -> DigitMap -> DigitMap
-updateFirst key seq = insertMap key digit (digit:renormalize qes)
-  where
-    renormalize = mapEveryOther (`div` 3) . map fromParity
-    digit       = firstDigit qes
-    qes         = reverse seq
-
-buildMap :: [[Parity Digit]] -> DigitMap
-buildMap = M.mapKeys (10 -)
-         . addFirstDigit
-         . finalDigits
-
-solve :: [[Parity Digit]] -> [[Digit]]
-solve [] = []
-solve xs = catMaybes $ map (addCheckDigit m ) checkDigits
-  where
-        checkDigits = map fromParity (last xs)
-        m = buildMap (init xs)
-        addCheckDigit  m k = (++[k]) <$> M.lookup k m
-
-{--
-listTOmaybe . solve . candidateDigits $ input
---}
-
-withRow :: Int -> Pixmap -> (RunLength Bit -> a) -> a
-withRow n greymap f = f . runLength . elems $ posterized
-  where
-    posterized = threshold 0.4 . fmap luminance . row n $ greymap
-
-row :: (Ix a, Ix b) => b -> Array (a,b) c -> Array a c
-row j a = ixmap (l,u) project a
-    where project i = (i,j)
-          ((l,_), (u,_)) = bounds a
-
-{--
-Example 1
-Input: ixmap (2,4) (\i -> i) (array (1,5) [(1,1),(2,2),(3,3),(4,4),(5,5)])
-Output: array (2,4) [(2,2),(3,3),(4,4)]
-
-Example 2
-Input: ixmap (0,2) (\i -> i+2) (array (1,5) [(1,'A'),(2,'B'),(3,'C'),(4,'D'),(5,'E')])
-Output: array (0,2) [(0,'B'),(1,'C'),(2,'D')]
-
-Example 3
-Input: ixmap (1,2) (\i -> (i-1,i-1)) (array ((0,0),(1,1)) [((0,0),'A'),((1,0),'C'),((0,1),'D'),((1,1),'B')])
-Output: array (1,2) [(1,'A'),(2,'B')]
-
-Example 4
-Input: ixmap ((0,0),(1,1)) (\i -> (snd i, fst i)) (array ((0,0),(1,1)) [((0,0),'A'),((1,1),'B'),((1,0),'C'),((0,1),'D')])
-Output: array ((0,0),(1,1)) [((0,0),'A'),((0,1),'C'),((1,0),'D'),((1,1),'B')]
---}
-
-findMatch :: [(Run, Bit)] -> Maybe [[Digit]]
-findMatch = listToMaybe
-          . filter ( not . null)
-          . map (solve . candidateDigits)
-          . tails
-
-
-findEAN13 :: Pixmap -> Maybe [Digit]
-findEAN13 pixmap = withRow center pixmap (fmap head . findMatch)
-  where
-    (_, (maxX, _)) = bounds pixmap
-    center = (maxX + 1) `div` 2
-
-
-main :: IO()
-main = do
-  args <- getArgs
-  forM_ args $ \arg -> do
-  e <- parse parseRawPPM <$> L.readFile arg
-  case e of
-    Left err -> print $ "error: " ++ err
-    Right pixmap -> prnt $ findEAN pixmap

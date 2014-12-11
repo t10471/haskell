@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 --
 -- $Id: Database.hs,v 1.3 2006/04/05 23:27:13 aamine Exp $
 --
