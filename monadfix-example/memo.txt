@@ -1,0 +1,13 @@
+:VimShellInteractive ghci -no-user-package-db -package-db /root/workspace/monadfix-example/.cabal-sandbox/x86_64-linux-ghc-7.8.4-packages.conf.d
+
+monadfix-example1.hs  
+MonadFix サンプル
+
+monadfix-example2.hs  
+MonadFix サンプル
+
+monadfix-example3.hs  
+ループの書き方3パターン
+
+recursivedo.hs
+MonadFix サンプル
