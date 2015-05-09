@@ -1,0 +1,29 @@
+VimShellInteractive ghci -no-user-package-db -package-db /root/workspace/monad-control-example/.cabal-sandbox/x86_64-linux-ghc-7.8.4-packages.conf.d
+
+monad-control-exampleの説明
+モナドトランスファーの処理の途中で中身が欲しくなったときに
+XXXT . func . runXXXTとしないといけないのを抽象化する仕組み
+
+MonadTransControlとMonadBaseControlが存在する
+使い分けはよくわからない
+
+型             MonadTransControl 
+持ち上げる関数 liftWith :: Monad m => (Run t -> m a) -> t m a
+戻す関数       restoreT :: Monad m => m (StT t a) -> t m a
+
+型             MonadBaseControl  
+持ち上げる関数 liftBaseWith :: (RunInBase m b -> b a) -> m a
+戻す関数       restoreM :: StM m a -> m a
+
+monad-control-example1.hs
+    基本
+monad-control-example2.hs
+    hackage にのっている説明
+    catch の使い方
+
+monad-control-example3.hs
+    複雑な例
+monad-control-example4.hs
+    エラーのときに型が合わないのをmonad-controlを使って解決する例
+
+全部monad-controlの説明

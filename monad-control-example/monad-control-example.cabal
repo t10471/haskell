@@ -1,0 +1,57 @@
+name:                monad-control-example
+version:             0.1.0
+synopsis:            Monad Control Exsample
+-- description:         
+license:             BSD3
+license-file:        LICENSE
+author:              t10471
+maintainer:          t10471 <t104711202@gmail.com>
+copyright:           (c) t10471 2014-2015
+category:            Sample Code
+build-type:          Simple
+cabal-version:       >=1.10
+
+-- -----------------------------------------------------------------------------
+executable monad-control-example1
+  main-is: monad-control-example1.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , monad-control >= 1
+                 , mtl >= 2.2
+                 , transformers-base >= 0.4
+                 , transformers >= 0.4
+  ghc-options: -O2
+  default-language: Haskell2010
+
+executable monad-control-example2
+  main-is: monad-control-example2.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , monad-control >= 1
+                 , lifted-base>= 0.2
+                 , mtl >= 2.2
+                 , transformers >= 0.4
+                 , transformers-base >= 0.4
+                 , containers >= 0.5.6
+  ghc-options: -O2
+  default-language: Haskell2010
+
+executable monad-control-example3
+  main-is: monad-control-example3.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , monad-control >= 1
+                 , mtl >= 2.2
+                 , transformers >= 0.4
+                 , transformers-base >= 0.4
+                 , containers >= 0.5.6
+  ghc-options: -O2
+  default-language: Haskell2010
+
+executable monad-control-example4
+  main-is: monad-control-example4.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , monad-control >= 1
+                 , mtl >= 2.2
+                 , transformers >= 0.4
+                 , transformers-base >= 0.4
+                 , containers >= 0.5.6
+  ghc-options: -O2
+  default-language: Haskell2010
