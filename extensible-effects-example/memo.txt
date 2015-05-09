@@ -1,0 +1,70 @@
+VimShellInteractive ghci -no-user-package-db -package-db /root/workspace/extensible-effects-example/.cabal-sandbox/x86_64-linux-ghc-7.8.4-packages.conf.d
+
+extensible-effects-example1.hs
+    hackageにのっているWriterとStateのサンプル
+extensible-effects-example2.hs
+    ReaderとStateのサンプル
+extensible-effects-example3.hs
+    Choose,Coroutine,Lift,Exception
+extensible-effects-example4.hs
+    https://github.com/cosmo0920/Garakuta/blob/ff02f9c0a90bea2ac05713afe29832047833d94b/Eff_Test/main.hs 
+    にあるサンプル
+    Reader, State, Exception, Choose, Cut, Lift
+extensible-effects-example5.hs
+    4の続き
+    State, Writer, Exception, Coroutine, Trace, Fresh
+extensible-effects-example6.hs
+   独自定義のサンプル 
+
+
+概要
+
+    2パターンの書き方ができる
+    exLift1 :: (SetMember Lift (Lift IO) r, Member (Reader Int) r) => Eff r ()
+    exLift2 :: Eff (Reader Int :> Lift IO :> ()) ()
+    制約と型変数として書く方法
+    型変数としてたく方が楽だが、順序が固定されてしまう。
+
+    exErr1 :: (Member (State Int) r, Member (Exc [Char]) r) => Eff r b
+    exErr2 :: Eff (State Int :> Exc [Char] :> r) b
+    1なら両方動作するが
+    (run $ runState (1::Int) $ runExc exErr1 :: (Int, Either String String))
+    (run $ runExc $ runState (1::Int) exErr1 :: Either String (Int, String))
+    2なら片方しか動作しない
+    (run $ runExc $ runState (1::Int) exErr2 :: Either String (Int, String))
+
+Control
+    Control.Eff
+    Control.Eff.Choose
+        非決定計算を行う
+    Control.Eff.Coroutine
+        Yieldを使って処理の中断を行える
+        YとDoneでyeildされた状態を保持している
+    Control.Eff.Cut
+        or計算(mplus),cutfalseが返された以降は処理されない
+        内部でChooeを使用しているのが制約に必要
+    Control.Eff.Exception
+        例外用
+    Control.Eff.Fresh
+        カウンター用
+    Control.Eff.Lift
+        Yield Int :> Lift IO :> ()のような普通のモナドをLiftで包み
+        liftを使い普通のモナドを使う
+    Control.Eff.Trace
+        ログを挟める
+Reader
+    Control.Eff.Reader.Lazy
+    Control.Eff.Reader.Strict
+State
+    Control.Eff.State.Lazy
+    Control.Eff.State.Strict
+Writer
+    Control.Eff.Writer.Lazy
+    Control.Eff.Writer.Strict
+Monad
+    Control.Monad.Free.Reflection
+        各種モナドの内部実装に使用
+Data
+    Data.OpenUnion
+        データの型
+
