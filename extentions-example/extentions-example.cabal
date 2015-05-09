@@ -1,0 +1,143 @@
+name:                extentions-example
+version:             0.1.0
+synopsis:            GHC EXtentions
+-- description:         
+license:             BSD3
+license-file:        LICENSE
+author:              t10471
+maintainer:          t10471 <t104711202@gmail.com>
+copyright:           (c) t10471 2014-2015
+category:            Sample Code
+build-type:          Simple
+cabal-version:       >=1.10
+
+-- -----------------------------------------------------------------------------
+executable extentions-example1
+  main-is: extentions-example1.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , mtl >= 2.2
+  ghc-options: -O2
+  default-language: Haskell2010
+
+executable extentions-example2
+  main-is: extentions-example2.hs
+  build-depends:   base >= 4.5 && < 4.8
+  ghc-options: -O2
+  default-language: Haskell2010
+
+executable extentions-example3
+  main-is: extentions-example3.hs
+  build-depends:   base >= 4.5 && < 4.8
+  ghc-options: -O2
+  default-language: Haskell2010
+
+executable extentions-example4
+  main-is: extentions-example4.hs
+  build-depends:   base >= 4.5 && < 4.8
+  ghc-options: -O2
+  default-language: Haskell2010
+
+executable extentions-example5
+  main-is: extentions-example5.hs
+  build-depends:   base >= 4.5 && < 4.8
+  ghc-options: -O2
+  default-language: Haskell2010
+
+executable extentions-example6
+  main-is: extentions-example6.hs
+  build-depends:   base >= 4.5 && < 4.8
+  ghc-options: -O2
+  default-language: Haskell2010
+
+executable extentions-example7
+  main-is: extentions-example7.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , containers
+  ghc-options: -O2
+  default-language: Haskell2010
+
+executable extentions-example8
+  main-is: extentions-example8.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , containers
+                 , bytestring
+  ghc-options: -O2
+  default-language: Haskell2010
+
+executable extentions-example9
+  main-is: extentions-example9.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , stm ==2.4.*
+  ghc-options: -O2
+  default-language: Haskell2010
+
+executable extentions-exampleA
+  main-is: extentions-exampleA.hs
+  build-depends:   base >= 4.5 && < 4.8
+  ghc-options: -O2
+  default-language: Haskell2010
+
+executable extentions-exampleB
+  main-is: extentions-exampleB.hs
+  build-depends:   base >= 4.5 && < 4.8
+  ghc-options: -O2
+  default-language: Haskell2010
+
+executable extentions-exampleC
+  main-is: extentions-exampleC.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , deepseq
+  ghc-options: -O2
+  default-language: Haskell2010
+
+executable extentions-exampleD
+  main-is: extentions-exampleD.hs
+  build-depends:   base >= 4.5 && < 4.8
+  ghc-options: -O2
+  default-language: Haskell2010
+
+executable extentions-exampleE
+  main-is: extentions-exampleE.hs
+  build-depends:   base >= 4.5 && < 4.8
+  ghc-options: -O2
+  default-language: Haskell2010
+
+executable extentions-exampleF
+  main-is: extentions-exampleF.hs
+  build-depends:   base >= 4.5 && < 4.8
+  ghc-options: -O2
+  default-language: Haskell2010
+
+executable extentions-exampleG
+  main-is: extentions-exampleG.hs
+  build-depends:   base >= 4.5 && < 4.8
+  ghc-options: -O2
+  default-language: Haskell2010
+
+executable extentions-exampleH
+  main-is: extentions-exampleH.hs
+  build-depends:   base >= 4.5 && < 4.8
+  ghc-options: -O2
+  default-language: Haskell2010
+
+executable extentions-exampleI
+  main-is: extentions-exampleI.hs
+  build-depends:   base >= 4.5 && < 4.8
+  ghc-options: -O2
+  default-language: Haskell2010
+
+executable extentions-exampleJ
+  main-is: extentions-exampleJ.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , free >= 4.10
+                 , mtl >= 2.2
+                 , random
+                 , deepseq
+  ghc-options: -O2
+  default-language: Haskell2010
+
+executable extentions-exampleK
+  main-is: extentions-exampleK.hs
+  build-depends:   base >= 4.5 && < 4.8
+  ghc-options: -O2
+  default-language: Haskell2010

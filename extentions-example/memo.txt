@@ -1,0 +1,197 @@
+VimShellInteractive ghci -no-user-package-db -package-db /root/workspace/extentions-example/.cabal-sandbox/x86_64-linux-ghc-7.8.4-packages.conf.d
+
+
+拡張の意味はwords.txtに移行
+
+
+extentions-example1.hs
+下記を使用したオーバーロード
+    FlexibleInstances   
+    UndecidableInstances
+    IncoherentInstances 
+
+extentions-example2.hs
+TypeFamiliesの簡単な例
+型を変数にしているぐらいの簡単な例なので役にはたたない
+    TypeFamilies
+
+extentions-example3.hs
+ヘテロリストの適用と表示、連結
+    KindSignatures      
+    DataKinds           
+    TypeOperators       
+    GADTs               
+    TypeFamilies        
+    UndecidableInstances
+    ConstraintKinds     
+    StandaloneDeriving  
+
+extentions-example4.hs
+    ScopedTypeVariables
+
+extentions-example5.hs
+    StandaloneDeriving
+
+extentions-example6.hs
+全てのMonadをFunctorにする
+    FlexibleInstances   
+    OverlappingInstances
+    UndecidableInstances
+
+extentions-example7.hs
+型制約を変数化することによりSetをモナドにするサンプル
+    ConstraintKinds
+    TypeFamilies   
+
+extentions-example8.hs
+FunctionalDependenciesと
+TypeFamiliesのサンプル
+同じことができる
+途中でMultiParamTypeClassesも出てくる
+    MultiParamTypeClasses 
+    FlexibleInstances     
+    FunctionalDependencies
+    TypeFamilies          
+
+extentions-example9.hs
+TypeFamiliesのサンプル
+    FlexibleContexts 
+    TypeFamilies     
+
+extentions-exampleA.hs
+7.7. 型の族 内の記述
+http://www.kotha.net/ghcguide_ja/7.6.2/type-families.html
+    TypeFamilies         
+    GADTs                
+    MultiParamTypeClasses
+    FlexibleContexts     
+    FlexibleInstances    
+    UndecidableInstances 
+
+extentions-exampleB.hs
+TypeFamiliesをつかって型で代数を定義
+    TypeFamilies        
+    EmptyDataDecls      
+    UndecidableInstances
+    ScopedTypeVariables 
+
+extentions-exampleC.hs
+TypeFamiliesとGADTsの比較
+    TypeFamilies
+    GADTs       
+
+extentions-exampleD.hs
+TypeFamiliesとFunctionalDependenciesのサンプルと
+等式制約を使ったパターン
+http://www.kotha.net/ghcguide_ja/latest/equality-constraints.html
+    FunctionalDependencies
+    TypeFamilies          
+
+extentions-exampleE.hs
+printfの実装
+DataKindsを使用して型が異なるリストを作成
+TypeFamiliesとConstraintKindsを使用して複雑なShowの型制約を作成
+    DataKinds            
+    KindSignatures       
+    TypeOperators        
+    ConstraintKinds      
+    FlexibleInstances    
+    UndecidableInstances 
+    TypeFamilies         
+    GADTs                
+    MultiParamTypeClasses
+
+extentions-exampleF.hs
+多相リスト的なものを作成
+型の拡張によりリストに異なる型を入れる
+    ExistentialQuantification
+
+extentions-exampleG.hs
+多相リストとShow
+    GADTs                    
+    ExistentialQuantification
+    KindSignatures           
+
+extentions-exampleH.hs
+型レベルFizzBuzz
+Proxyの説明あり
+    GADTs                
+    DataKinds            
+    TypeOperators        
+    TypeFamilies         
+    UndecidableInstances 
+    FlexibleInstances    
+    FlexibleContexts     
+    ScopedTypeVariables  
+    MultiParamTypeClasses
+
+extentions-exampleI.hs
+可変引数の関数定義と多相リスト
+    GADTs               
+    TypeFamilies        
+    DataKinds           
+    ConstraintKinds     
+    TypeOperators       
+    ScopedTypeVariables 
+    UndecidableInstances
+
+extentions-exampleI.hs
+pattern synonymsを使ったリスト
+    PatternSynonyms
+
+extentions-exampleK.hs
+下記拡張の比較
+    PatternGuards  
+    PatternSynonyms
+    ViewPatterns   
+
+extentions-exampleL.hs
+RoleAnnotationsのサンプル
+    GADTs          
+    PolyKinds      
+    DataKinds      
+    KindSignatures 
+    RoleAnnotations
+
+
+
+pokemon/pokemon1.hs
+    何の拡張も使わずに実装
+
+pokemon/pokemon2.hs
+MultiParamTypeClassesを使用したサンプル
+型推論に難があり、使用するときに補う必要がある
+    MultiParamTypeClasses
+
+pokemon/pokemon3.hs
+データ族を使用したサンプル
+    TypeFamilies         
+    MultiParamTypeClasses
+    FlexibleContexts     
+
+pokemon/pokemon4.hs
+データ族、型シニノム族を使用したサンプル
+    TypeFamilies         
+    MultiParamTypeClasses
+    FlexibleContexts     
+
+data_kinds/data_kinds1.hs
+赤黒木のデータ構造(途中)
+DataKinds未使用でバグっている
+    KindSignatures
+    GADTs         
+    EmptyDataDecls
+
+data_kinds/data_kinds2.hs
+赤黒木のデータ構造(途中)
+DataKindsを使用
+    KindSignatures
+    GADTs         
+    DataKinds     
+
+data_kinds/data_kinds3.hs
+赤黒木のデータ構造(完璧)
+    KindSignatures
+    GADTs         
+    DataKinds     
+

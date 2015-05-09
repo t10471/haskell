@@ -1,0 +1,132 @@
+
+------------------------------
+ExistentialQuantification
+    data に forall がかけるが deriving は使えない
+    newtype には使えない
+
+TypeOperators
+   data a + b = Plus a b
+   type Foo = Int + Bool
+   型演算子を許可する 
+
+DataKinds
+    data Nat = Zero | Succ Nat
+    DataKinds拡張を使うと、以下のようなものも自動で生成される
+    data Zero
+    data Succ (n :: Nat)
+    ただし Zero :: Nat, Succ n :: Nat である
+
+KindSignatures
+    各宣言にカインドを記述できるようになる
+    data Set (cxt :: * -> *) a = Set [a]
+    type T (f :: * -> *) = f Int
+    class (Eq a) => C (f :: * -> *) a where ...
+    f :: forall (cxt :: * -> *). Set cxt Int
+    f :: (Int :: *) -> Int
+    g :: forall a. a -> (a :: *)
+
+EmptyDataDecls
+    data Zero
+    空のデータ宣言ができる
+
+MultiParamTypeClasses
+    class Set s a where
+    複数型変数を持つクラスをかける
+
+FunctionalDependencies
+    型の依存関係がかける
+    class Collects_FD e c | c -> e where
+    |c -> e は型cが決まればeが決まるという
+
+TypeFamilies
+    データ族、型シニノム族の記述ができる
+    クラスのインスタンスごとに型を分けるなどの使い道
+
+ConstraintKinds
+    型制約をtypeで変数化できる
+    同じのをいろいろな所に書くときに便利
+    インスタンス別に定義することもできる
+
+TypeSynonymInstances
+    Stringはは型シノニム([Char]別名)なのでインスタンスに指定できないのを解除する
+
+FlexibleInstances   
+    instance Foo String where
+    リスト型はインスタンスに指定できないのを解除する
+    TypeSynonymInstancesを含む
+
+ScopedTypeVariables
+    関数内部で一環した型を指定できる
+    通常は関数定義で指定したaなどはそこでしかその意味をなさないが、
+     ScopedTypeVariablesで関数内、局所関数内に指定したaが関数定義のaと同じになる
+
+StandaloneDeriving
+    deriving を単独でかける。debugに便利
+
+UndecidableInstances
+    instance (Num a, Eq a) => Foo a where
+    instance (Monad m) => Functor m where
+    インスタンスに引数のない型制約が指定できないのを解除する
+    instance (Eq m) => Eq (Maybe m) where
+    はUndecidableInstancesなしでもOK
+    Num :: * -> Constraint
+    Eq :: * -> Constraint
+    Maybe :: * -> *
+    型制約(Constraint)とは引数を持った型クラス
+    できる場合は引数が明示されている(Eq (Maybe m))が
+    できない場合は指定がない(Foo aでaがなんだか不明) 
+
+    上とは別にtype family がネストした場合にも必要
+    extentions-exampleB.hs参照
+
+OverlappingInstances
+    instance  Functor Maybe  where
+    instance (Monad m) => Functor m where
+    具体的なインスタンス宣言をかける
+
+IncoherentInstances
+    instance Show a => ToString (Wrap a) where
+        toString (Wrap x) = "Normal:" ++ show x
+    instance ToString (Wrap Int) where
+        toString (Wrap x) = "Int:" ++ show x
+    インスタンス宣言が重複している場合
+    OverlappingInstancesを使えばOKだが、
+    toString (Wrap (1 :: Int ))はOK
+    toString (Wrap 1)はIntかどうか分からないので
+    エラーになる
+    IncoherentInstancesを使用することでエラーを防げる
+
+ViewPatterns
+    パターンマッチに関数を埋め込める
+      (read -> n):_ <- getArgs
+
+PatternSynonyms
+    パターンマッチを定義できる
+    pattern Nil = Pure ()
+
+BangPatterns
+    !で弱頭部正規形に評価する
+    sum = go 0 where
+        go !acc (x:xs) = go (acc + x) (go xs)
+        go  acc []     = acc
+    以下と同じ
+    sum = go 0 where
+        go acc _ | acc `seq` False = undefined
+        go acc (x:xs)              = go (acc + x) (go xs)
+        go acc []                  = acc
+
+    ($!) :: (a -> b) -> a -> b
+    f $! x  = let !vx = x in f vx
+
+RoleAnnotations
+    型の役割を指定できる
+    extentions-exampleL.hs 参照
+    nominal          ［名前上の］： 2 つの型は等しい。
+    representational ［表現上の］： 2 つの型は同じ実行時表現を持つ。
+    phantom           幽霊型
+
+
+
+
+
+
