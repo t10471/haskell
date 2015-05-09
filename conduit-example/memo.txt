@@ -1,0 +1,54 @@
+VimShellInteractive ghci -no-user-package-db -package-db /root/workspace/conduit-example/.cabal-sandbox/x86_64-linux-ghc-7.8.4-packages.conf.d
+
+data ConduitM i o m r
+
+i は処理の入力として取る値の型
+o は次の処理に流す値の型
+m は基底モナドの型
+r は処理終了後に返す値の型
+
+ConduitMはMonad, MonadTrans, MonadIO, Monoid等のインスタンス
+
+type Source    m o = ConduitM () o    m ()
+type Conduit i m o = ConduitM i  o    m ()
+type Sink    i m r = ConduitM i  Void m r
+
+Source  は次の処理へデータを流す専用の型
+Conduit は入力を取って何らかの値を次へと流す処理を行う型
+Sink    は入力を取って、最終処理を行う型
+
+($$)  :: Monad m => Source    m a -> Sink     a m b   -> m b
+($=)  :: Monad m => Source    m a -> Conduit  a m b   -> Source m b
+(=$)  :: Monad m => Conduit a m b -> Sink     b m c   -> Sink a m c
+(=$=) :: Monad m => Conduit a m b -> ConduitM b c m r -> ConduitM a c m r
+
+($$)  はSourceとSinkを結合する
+($=)  はSourceとConduitを結合して新しいSourceをつくる
+(=$)  はConduitとSinkを結合して新しいSinkをつくる
+(=$=) はConduitとConduitを結合して新しいConduitをつくる
+
+type Producer   m o = forall i. ConduitM i o m ()
+type Consumer i m r = forall o. ConduitM i o m r
+
+Producerが ConduitにもなれるSource
+Consumerが ConduitにもなれるSink
+
+data ResumableSource m o
+
+出力可能な値の残っているSourceを再利用したい時
+
+($$+)  :: Monad m => Source          m a -> Sink a m b -> m (ResumableSource m a, b)
+($$++) :: Monad m => ResumableSource m a -> Sink a m b -> m (ResumableSource m a, b)
+($$+-) :: Monad m => ResumableSource m a -> Sink a m b -> m b
+
+($$+)  $$ とほぼ同じ働きをするが、最利用可能なSource(ResumableSource)も返す
+($$++) $$+とほぼ同じ働きをするが、引数にSourceではなくResumableSourceを取る
+($$+-) $$ とほぼ同じ働きをするが、引数にSourceではなくResumableSourceを取る
+
+yield    :: Monad m => o -> ConduitM i o m ()
+await    :: Monad m =>      ConduitM i o m (Maybe i)
+leftover ::            i -> ConduitM i o m ()
+
+yield    はひとつの値をストリームに流す
+await    はストリームからひとつの値を取得する
+leftover はひとつの値をストリームに戻す
