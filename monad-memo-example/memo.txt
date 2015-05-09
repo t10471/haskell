@@ -1,0 +1,126 @@
+VimShellInteractive ghci -no-user-package-db -package-db /root/workspace/monad-memo-example/.cabal-sandbox/x86_64-linux-ghc-7.8.4-packages.conf.d
+
+monad-memo-example1.hs
+    memo
+    memol0
+    memol1
+    for2
+    MemoT
+    startEvalMemo
+    startEvalMemoT
+
+    evalMemo
+    evalArrayMemo
+    evalUArrayMemo
+    evalUVectorMemo
+    evalUVectorMemo
+    hackageにある使い方を記述
+
+monad-memo-example2.hs
+    モナドの合成
+    Writerモナド
+    Constモナド
+    Readerモナド
+    IO
+    IOは動かない...
+
+
+monad-memo-example3.hs
+    色々なキャッシュ
+
+monad-memo-example4.hs
+    実用例
+
+MaybeLike.hs
+    定義をオーバーライド
+
+MapLike.hs
+    キャッシュがHashMapの独自に定義
+
+Cache.hs
+    ReaderCacheを継承してHashMapのメモを作成
+
+Array.hs
+    MaybeLikeに独自定義を追加したのを使用した
+    Arrayをメモに使用したサンプル
+
+Vector.hs
+    MaybeLikeに独自定義を追加したのを使用した
+    Vectorをメモに使用したサンプル
+
+概要
+MapLikeにデータを保存しStateを介して使用する
+MapLikeはMaybeLikeに依存
+基本は以下
+Control.Monad.Trans.Memo.Map
+Control.Monad.Memo.Class
+Control.Monad.Trans.Memo.State
+
+
+クラス一覧と説明と依存関係
+
+Control.Monad.Memo
+    インポートしているだけ、起点
+    Control.Monad.Memo.Class
+    Control.Monad.Trans.Memo.State
+    Control.Monad.Trans.Memo.Map
+    Control.Monad.Memo.Array
+    Control.Monad.Memo.Array.Instances
+    Control.Monad.Memo.Vector
+    Control.Monad.Memo.Vector.Instances
+    Data.MapLike
+    Data.MaybeLike
+    Data.MaybeLike.Instances
+Control.Monad.Memo.Class
+    MonadCache,MonadMemo,memo系の実装
+
+Control.Monad.Trans.Memo.Map
+    キャッシュがマップ
+    何も指定しなければこれを使用
+    Control.Monad.Trans.Memo.State
+    Data.MapLike.Instances
+Control.Monad.Trans.Memo.ReaderCache
+    ReaderCacheの実装
+    ReaderT的な役割
+Control.Monad.Trans.Memo.State
+    コア部分の定義と関数
+    Data.MapLike
+    Control.Monad.Memo.Class
+    Control.Monad.Trans.Memo.StateCache
+Control.Monad.Trans.Memo.StateCache
+    StateCacheの実装
+    StateT的な役割
+
+Data.MapLike
+    インターフェースを定義
+Data.MapLike.Instances
+    基本的な型の実装を定義
+Data.MaybeLike
+    インターフェースを定義
+Data.MaybeLike.Instances
+    基本的な型の実装を定義
+
+Control.Monad.Memo.Array
+    Data.MaybeLike
+    Control.Monad.Memo.Class
+    Control.Monad.Trans.Memo.ReaderCache
+Control.Monad.Memo.Array.Instances
+    Data.MaybeLike
+    Control.Monad.Memo.Array
+Control.Monad.Memo.Vector
+    Data.MaybeLike
+    Control.Monad.Memo.Class
+    Control.Monad.Trans.Memo.ReaderCache
+Control.Monad.Memo.Vector.Expandable
+    Data.MaybeLike
+    Control.Monad.Memo.Class
+    Control.Monad.Trans.Memo.StateCache
+Control.Monad.Memo.Vector.Instances
+    Data.MaybeLike
+    Control.Monad.Memo.Vector
+    Control.Monad.Memo.Vector.Expandable
+    Control.Monad.Memo.Vector.Unsafe
+Control.Monad.Memo.Vector.Unsafe
+    Data.MaybeLike
+    Control.Monad.Memo.Class
+    Control.Monad.Trans.Memo.ReaderCache
