@@ -2,3 +2,7 @@ README.html
 *.swp
 *.o
 *.hi
+.cabal-sandbox/
+dist/
+cabal.sandbox.config
+tags
