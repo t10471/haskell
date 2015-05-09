@@ -1,0 +1,8 @@
+VimShellInteractive ghci -no-user-package-db -package-db /root/workspace/mmorph-example/.cabal-sandbox/x86_64-linux-ghc-7.8.4-packages.conf.d
+
+mmorph-example1.hs
+    hackageにある説明
+mmorph-example2.hs
+    独自のクラスに定義
+
+

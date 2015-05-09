@@ -1,0 +1,31 @@
+name:                mmorph-example
+version:             0.1.0
+synopsis:            mmorph Example
+-- description:         
+license:             BSD3
+license-file:        LICENSE
+author:              t10471
+maintainer:          t10471 <t104711202@gmail.com>
+copyright:           (c) t10471 2014-2015
+category:            Sample Code
+build-type:          Simple
+cabal-version:       >=1.10
+
+-- -----------------------------------------------------------------------------
+executable mmorph-example1
+  main-is: mmorph-example1.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , mtl >= 2.2
+                 , transformers >= 0.4
+                 , mmorph >= 1.0
+  ghc-options: -O2
+  default-language: Haskell2010
+
+executable mmorph-example2
+  main-is: mmorph-example2.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , mtl >= 2.2
+                 , transformers >= 0.4
+                 , mmorph >= 1.0
+  ghc-options: -O2
+  default-language: Haskell2010
