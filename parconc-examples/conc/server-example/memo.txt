@@ -1,0 +1,83 @@
+ghciの起動方法
+:VimShellInteractive ghci -no-user-package-db -package-db /root/workspace/parconc-examples/conc/server-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d
+
+
+ghc --make -O2 -optP-include -optPdist/build/autogen/cabal_macros.h -no-user-package-db -package-db /root/workspace/parconc-examples/conc/server-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d ./server.hs
+./server
+サーバが起動するので
+nc localhost 44444
+でクライアントを立ち上げ数字を入力か end を入力
+
+
+ghc --make -O2 -optP-include -optPdist/build/autogen/cabal_macros.h -no-user-package-db -package-db /root/workspace/parconc-examples/conc/server-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d ./server2.hs
+./server2
+ログ {{{
+起動時してからクライアント接続時のログ
+receive は hGetLin で     server は readTChan で待機している
+receive hGetLin before
+serve readTVar before
+serve readTVar after 2
+serve readTChan before
+
+10を入力したとき
+receive hGetLin 10
+receive hGetLin before    receive は writeTChan して待機
+serve readTVar after 2
+serve readTChan after 10
+serve readTVar after 2    server は コマンドを実行(クライアントに20を返す)をして待機
+
+クライアント1で*6を入力したとき
+receive hGetLin *6
+receive hGetLin before
+serve readTVar after 2
+serve readTChan after *6
+serve readTVar after 6
+newfactor end
+serve readTVar after 6
+
+クライアント2で*4を入力したとき
+一斉にクライアントに対して newfactor を発行している
+receive hGetLin *4
+receive hGetLin before
+serve readTVar before
+serve readTVar after 6
+serve readTChan after *4
+serve readTVar after 4
+newfactor end
+serve readTVar after 4
+serve readTVar after 4
+newfactor end
+serve readTVar after 4
+
+endを入力したとき
+receive hGetLin end
+receive hGetLin before
+serve readTVar after2
+serve readTChan after end
+talk end
+
+qを入力したとき
+receive hGetLin q
+receive hGetLin before
+serve readTVar before
+serve readTVar after 2
+serve readTChan after q
+}}}
+
+ghc --make -O2 -optP-include -optPdist/build/autogen/cabal_macros.h -no-user-package-db -package-db /root/workspace/parconc-examples/conc/server-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d ./chat.hs
+./chat
+サーバが起動するので
+nc localhost 44444
+でクライアント接続すると名前を聞かれるので
+ユニークな名前を設定
+
+/tell name message
+name に対してメッセージを送る
+/kick name
+name を切断する
+/quit
+自分を切断する
+message
+全体にメッセージを送る
+
+readTChan で大体待機している

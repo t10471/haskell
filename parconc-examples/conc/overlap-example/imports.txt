@@ -1,0 +1,32 @@
+geturls1.hs:import Control.Concurrent
+geturls1.hs:import Data.ByteString as B
+geturls1.hs:import GetURL
+GetURL.hs:import Network.HTTP
+GetURL.hs:import Network.Browser
+GetURL.hs:import Network.URI
+GetURL.hs:import Data.ByteString (ByteString)
+geturls2.hs:import GetURL
+geturls2.hs:import Control.Concurrent
+geturls2.hs:import qualified Data.ByteString as B
+geturls3.hs:import GetURL
+geturls3.hs:import TimeIt
+geturls3.hs:import Control.Concurrent
+geturls3.hs:import Text.Printf
+geturls3.hs:import qualified Data.ByteString as B
+TimeIt.hs:import Data.Time
+geturls4.hs:import GetURL
+geturls4.hs:import Control.Concurrent
+geturls4.hs:import Control.Exception
+geturls4.hs:import qualified Data.ByteString as B
+geturls5.hs:import Control.Concurrent
+geturls5.hs:import GetURL
+geturls5.hs:import qualified Data.ByteString as B
+geturls5.hs:import Text.Printf
+geturls5.hs:import Control.Monad
+geturls6.hs:import GetURL
+geturls6.hs:import TimeIt
+geturls6.hs:import Control.Monad
+geturls6.hs:import Control.Concurrent
+geturls6.hs:import Control.Exception
+geturls6.hs:import Text.Printf
+geturls6.hs:import qualified Data.ByteString as B

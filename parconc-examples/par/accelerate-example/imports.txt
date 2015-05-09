@@ -1,0 +1,29 @@
+AccelerateSample.hs:import Data.Array.Accelerate as A
+AccelerateSample.hs:import Data.Array.Accelerate.Interpreter
+AccelerateCompat.hs:import Data.Array.Accelerate as A
+fwaccel.hs:import Prelude
+fwaccel.hs:import System.Environment
+fwaccel.hs:import Data.Array.Accelerate as A
+fwaccel.hs:import Data.Array.Accelerate.Interpreter
+fwaccel.hs:import AccelerateCompat as A
+mandel/mandel.hs:import Config
+mandel/mandel.hs:import Control.Monad
+mandel/mandel.hs:import Control.Exception
+mandel/mandel.hs:import Foreign.Ptr
+mandel/mandel.hs:import Foreign.ForeignPtr
+mandel/mandel.hs:import System.IO.Unsafe
+mandel/mandel.hs:import System.Environment
+mandel/mandel.hs:import Data.Array.Accelerate.Array.Data         ( ptrsOfArrayData )
+mandel/mandel.hs:import Data.Array.Accelerate.Array.Sugar        ( Array(..) )
+mandel/mandel.hs:import Prelude                                  as P
+mandel/mandel.hs:import Data.Array.Accelerate                    as A hiding ( size )
+mandel/mandel.hs:import Data.Array.Accelerate.IO
+mandel/mandel.hs:import qualified Data.Array.Repa as R
+mandel/mandel.hs:import qualified Data.Array.Repa.Repr.ForeignPtr as R
+mandel/mandel.hs:import Data.Array.Repa.IO.DevIL
+mandel/Config.hs:import Data.Label
+mandel/Config.hs:import System.Exit
+mandel/Config.hs:import System.Console.GetOpt
+mandel/Config.hs:import Data.Array.Accelerate                            ( Arrays, Acc )
+mandel/Config.hs:import qualified Data.Array.Accelerate.Interpreter      as Interp
+mandel/Config.hs:import qualified Data.Array.Accelerate.CUDA             as CUDA

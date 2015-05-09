@@ -1,0 +1,134 @@
+
+par
+
+1.はじめに
+
+2.Evalモナド
+eval-example/
+    parallel
+        Control.Parallel
+        Control.Parallel.Strategies
+    deepseq
+        Control.DeepSeq
+
+3.評価戦略
+strat-example/
+    parallel
+        Control.Parallel
+        Control.Parallel.Strategies
+    deepseq
+        Control.DeepSeq
+    monad-par
+        Control.Monad.Par
+
+4.データフロー並列 Parモナド
+parmonad-example/
+IVarを使用
+IVarはMVarと違い一度しか書き込みができない
+    monad-par
+        Control.Monad.Par
+        Control.Monad.Par.Scheds.Trace
+    deepseq
+        Control.DeepSeq
+
+5.Repaを用いた並列プログラミング
+repa-example/
+Repaは[Regular Parallel arrays]のことで配列の並列操作に使用
+    repa
+        Data.Array.Repa
+        Data.Array.Repa.Repr.ForeignPtr
+    repa-devil
+        Data.Array.Repa.IO.DevIL
+
+6.AccelerateによるGPUプログラミング
+accelerate-example/
+    accelerate
+        Data.Array.Accelerate
+        Data.Array.Accelerate.Interpreter
+        Data.Array.Accelerate.Array.Data 
+        Data.Array.Accelerate.Array.Sugar
+    accelerate-io
+        Data.Array.Accelerate.IO
+    accelerate-cuda
+        Data.Array.Accelerate.CUDA 
+    fclabels
+        lensのシンプルなやつ
+        Data.Label
+    repa
+        Data.Array.Repa
+        Data.Array.Repa.Repr.ForeignPtr
+    repa-devil
+        Data.Array.Repa.IO.DevIL
+
+conc
+
+7.平行制御の基本 スレッドとMVar
+fork-example/
+    base
+        Control.Concurrent
+mvar-example/
+MVarはスレッド間での値の共有に使用
+公平性がある(STMにはない)
+    base
+        Control.Concurrent
+
+8.入出力の重ね合わせ
+overlap-example/
+    base
+        Control.Concurrent
+
+9.キャンセルとタイムアウト
+asyncex-example/
+    base
+        Control.Concurrent
+
+10.ソフトウェアトランザクショナルメモリ
+stm-example/
+Tvarを使ってデッドロックを回避する
+MVarでは順序を間違えるとデッドロックが発生する
+IOモナド内ではなくSTMモナド内でTVarは使用する
+TMVarもある
+STMはMVarに比べると遅く、公平性はないが安全である
+    stm
+        Control.Concurrent.STM
+
+11.並列性の高水準な抽象化
+higher-example/
+Asyncを使ったスレッド木の安全な操作
+    base
+        Control.Concurrent
+    stm
+        Control.Concurrent.STM
+    async
+        Control.Concurrent.Async
+
+12.平行ネットワークサーバ
+server-example/
+    base
+        Control.Concurrent
+    stm
+        Control.Concurrent.STM
+    async
+        Control.Concurrent.Async
+
+13.スレッドを用いた並列プログラミング
+いろんな方法で並列化
+IVarを使ったMonad.Parが早い
+par-example/
+    base
+        Control.Concurrent
+    stm
+        Control.Concurrent.STM
+    async
+        Control.Concurrent.Async
+    monad-par
+        Control.Monad.Par
+        Control.Monad.Par.IO
+    abstract-par
+        Control.Monad.IO.Class
+
+14.分散プログラミング
+distrib-example/
+
+15.デバッグ、チューニング、外部コードとのインターフェース
+debugging-tuning/

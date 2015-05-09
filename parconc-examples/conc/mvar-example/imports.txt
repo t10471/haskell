@@ -1,0 +1,11 @@
+mvar1.hs:import Control.Concurrent
+mvar2.hs:import Control.Concurrent
+mvar3.hs:import Control.Concurrent
+chan.hs:import Control.Concurrent hiding (Chan, newChan, readChan, writeChan)
+chan2.hs:import Control.Concurrent hiding (Chan, newChan, readChan, writeChan, dupChan)
+phonebook.hs:import Data.Map (Map)
+phonebook.hs:import qualified Data.Map as Map
+phonebook.hs:import Control.Concurrent
+phonebook.hs:import Prelude hiding (lookup)
+logger.hs:import Control.Concurrent
+logger.hs:import Control.Monad

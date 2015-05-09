@@ -1,0 +1,15 @@
+ghciの起動方法
+:VimShellInteractive ghci -no-user-package-db -package-db /root/workspace/parconc-examples/par/accelerate-example/.cabal-sandbox/x86_64-linux-ghc-7.8.4-packages.conf.d
+
+Accelerate {{{
+AccelerateSample.hsに記載
+
+ghc --make -O2 -fllvm -threaded -optP-include -optPdist/build/autogen/cabal_macros.h -package-db /root/workspace/parconc-examples/par/accelerate-example/.cabal-sandbox/x86_64-linux-ghc-7.8.4-packages.conf.d ./fwaccel.hs 
+./fwaccel 500 +RTS -s
+
+ghc --make -O2 -fllvm -threaded -optP-include -optP../dist/build/autogen/cabal_macros.h -package-db /root/workspace/parconc-examples/par/accelerate-example/.cabal-sandbox/x86_64-linux-ghc-7.8.4-packages.conf.d ./mandel.hs 
+rm out.jpg ; ./mandel --size=1000 +RTS -s
+}}}
+
+
+

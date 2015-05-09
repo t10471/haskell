@@ -1,0 +1,12 @@
+fwdense.hs:import System.Environment
+fwdense.hs:import Data.Array.Repa
+fwdense1.hs:import System.Environment
+fwdense1.hs:import Data.Array.Repa
+fwdense1.hs:import Data.Functor.Identity
+RepaSample.hs:import Data.Array.Repa as R
+RepaSample.hs:import Data.Functor.Identity
+RepaSample.hs:import MyDebug
+rotateimage.hs:import Data.Array.Repa.IO.DevIL
+rotateimage.hs:import System.Environment
+rotateimage.hs:import Data.Array.Repa.Repr.ForeignPtr
+rotateimage.hs:import Data.Word

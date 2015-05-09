@@ -1,0 +1,41 @@
+ghciの起動方法
+:VimShellInteractive ghci -no-user-package-db -package-db /root/workspace/parconc-examples/par/strat-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d
+
+strat {{{
+ghc -O2 -package-db /root/workspace/parconc-examples/par/strat-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d -threaded -rtsopts -eventlog strat.hs
+./strat 
+ghc -O2 -package-db /root/workspace/parconc-examples/par/strat-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d -threaded -rtsopts -eventlog strat2.hs
+./strat2
+ghc -O2 -package-db /root/workspace/parconc-examples/par/strat-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d -threaded -rtsopts -eventlog strat3.hs
+./strat3
+ghc -O2 -package-db /root/workspace/parconc-examples/par/strat-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d -threaded -rtsopts -eventlog sudoku5.hs
+./sudoku5 sudoku17.1000.txt
+}}}
+
+kmeans {{{
+ghc -O2 -package-db /root/workspace/parconc-examples/par/strat-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d -threaded -rtsopts -eventlog kmeans.hs
+ghc --make -O2 -package-db /root/workspace/parconc-examples/par/strat-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d GenSamples.hs
+./GenSample 5 500000 1000000 1010
+./kmeans seq
+
+点に近いクラスタへの振り分けをチャンクに分けて並列化
+64はチャンクの数
+./kmeans strat 64 +RTS -N2
+}}}
+
+rsa {{{
+rsa.hs 通常版
+ghc --make -O2 -optP-include -optPdist/build/autogen/cabal_macros.h -package-db /root/workspace/parconc-examples/par/strat-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d ./rsa.hs
+echo "Hello World!" | ./rsa encrypt -
+echo "Hello World!" | ./rsa encrypt - | ./rsa decrypt -
+
+rsa1.hs parListを使った並列版
+一度にスパークを作成するので定数空間では処理できず、入力データ分の空間が必要になる
+ghc --make -O2 -optP-include -optPdist/build/autogen/cabal_macros.h -package-db /root/workspace/parconc-examples/par/strat-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d ./rsa1.hs
+
+rsa2.hs parBufferを使った並列版
+parBufferの引数分のバッファサイズのみ作成する
+ghc --make -O2 -optP-include -optPdist/build/autogen/cabal_macros.h -package-db /root/workspace/parconc-examples/par/strat-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d ./rsa2.hs
+
+Streamを使ったパイプライ並列版は parmonad に記載
+}}}

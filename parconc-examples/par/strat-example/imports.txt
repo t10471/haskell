@@ -1,0 +1,85 @@
+strat.hs:import Control.Parallel
+strat.hs:import Control.Parallel.Strategies (rpar, Strategy, using)
+strat.hs:import Text.Printf
+strat.hs:import System.Environment
+strat2.hs:import Control.Parallel
+strat2.hs:import Control.Parallel.Strategies (rpar, Strategy, using)
+strat2.hs:import Text.Printf
+strat2.hs:import System.Environment
+strat3.hs:import Control.Parallel
+strat3.hs:import Control.Parallel.Strategies (rpar, rseq, rdeepseq, Strategy, using, rparWith)
+strat3.hs:import Control.Exception
+strat3.hs:import Text.Printf
+strat3.hs:import System.Environment
+sudoku5.hs:import Sudoku
+sudoku5.hs:import Control.Exception
+sudoku5.hs:import System.Environment
+sudoku5.hs:import Control.Parallel.Strategies
+sudoku5.hs:import Data.Maybe
+Sudoku.hs:import Data.List hiding (lookup)
+Sudoku.hs:import Data.Array
+Sudoku.hs:import Control.Monad
+Sudoku.hs:import Data.Maybe
+rsa.hs:import System.Environment
+rsa.hs:import Data.List
+rsa.hs:import qualified Data.ByteString.Lazy.Char8 as B
+rsa.hs:import Data.ByteString.Lazy.Char8 (ByteString)
+rsa.hs:import ByteStringCompat
+rsa2.hs:import System.Environment
+rsa2.hs:import Control.Parallel.Strategies
+rsa2.hs:import Data.List
+rsa2.hs:import qualified Data.ByteString.Lazy.Char8 as B
+rsa2.hs:import Data.ByteString.Lazy.Char8 (ByteString)
+rsa2.hs:import ByteStringCompat
+parlist.hs:import Control.Parallel.Strategies hiding (parList, evalList)
+ByteStringCompat.hs:import qualified Data.ByteString.Lazy.Char8 as B
+ByteStringCompat.hs:import Data.ByteString.Lazy.Char8 (ByteString)
+ByteStringCompat.hs:import Control.DeepSeq
+MyDebug.hs:import Debug.Trace
+kmeans/kmeans.hs:import System.IO
+kmeans/kmeans.hs:import KMeansCore
+kmeans/kmeans.hs:import Data.Array
+kmeans/kmeans.hs:import Data.Array.Unsafe as Unsafe
+kmeans/kmeans.hs:import Text.Printf
+kmeans/kmeans.hs:import Data.List
+kmeans/kmeans.hs:import Data.Function
+kmeans/kmeans.hs:import Data.Binary (decodeFile)
+kmeans/kmeans.hs:import Debug.Trace
+kmeans/kmeans.hs:import Control.Parallel.Strategies as Strategies
+kmeans/kmeans.hs:import Control.Monad.Par as Par
+kmeans/kmeans.hs:import Control.DeepSeq
+kmeans/kmeans.hs:import System.Environment
+kmeans/kmeans.hs:import Data.Time.Clock
+kmeans/kmeans.hs:import Control.Exception
+kmeans/kmeans.hs:import Control.Concurrent
+kmeans/kmeans.hs:import Control.Monad.ST
+kmeans/kmeans.hs:import Data.Array.ST
+kmeans/kmeans.hs:import System.Mem
+kmeans/kmeans.hs:import Data.Maybe
+kmeans/kmeans.hs:import qualified Data.Vector as Vector
+kmeans/kmeans.hs:import Data.Vector (Vector)
+kmeans/kmeans.hs:import qualified Data.Vector.Mutable as MVector
+kmeans/kmeans.hs:                        -- v. important: filter out any clusters that have
+kmeans/Data/Random/xNormal.hs:import Data.List (mapAccumL)
+kmeans/Data/Random/xNormal.hs:import System.Random
+kmeans/KMeansCore.hs:import Data.List
+kmeans/KMeansCore.hs:import Data.Typeable (Typeable)
+kmeans/KMeansCore.hs:import Data.Data (Data)
+kmeans/KMeansCore.hs:import qualified Data.ByteString.Char8 as B
+kmeans/KMeansCore.hs:import Data.Binary
+kmeans/KMeansCore.hs:import Control.DeepSeq
+kmeans/GenSamples.hs:import KMeansCore
+kmeans/GenSamples.hs:import Data.Random.Normal
+kmeans/GenSamples.hs:import System.Random
+kmeans/GenSamples.hs:import System.IO
+kmeans/GenSamples.hs:import Data.Array
+kmeans/GenSamples.hs:import System.Environment
+kmeans/GenSamples.hs:import Control.Monad
+kmeans/GenSamples.hs:import Data.List
+kmeans/GenSamples.hs:import Data.Binary
+rsa1.hs:import System.Environment
+rsa1.hs:import Control.Parallel.Strategies
+rsa1.hs:import Data.List
+rsa1.hs:import qualified Data.ByteString.Lazy.Char8 as B
+rsa1.hs:import Data.ByteString.Lazy.Char8 (ByteString)
+rsa1.hs:import ByteStringCompat

@@ -1,0 +1,27 @@
+ghciの起動方法
+:VimShellInteractive ghci -no-user-package-db -package-db /root/workspace/parconc-examples/conc/overlap-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d
+
+Orverlap {{{
+
+ghc --make -O2 -optP-include -optPdist/build/autogen/cabal_macros.h -no-user-package-db -package-db /root/workspace/parconc-examples/conc/overlap-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d ./geturls1.hs 
+./geturls1
+
+ghc --make -O2 -optP-include -optPdist/build/autogen/cabal_macros.h -no-user-package-db -package-db /root/workspace/parconc-examples/conc/overlap-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d ./geturls2.hs 
+./geturls2
+
+ghc --make -O2 -optP-include -optPdist/build/autogen/cabal_macros.h -no-user-package-db -package-db /root/workspace/parconc-examples/conc/overlap-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d ./geturls3.hs 
+./geturls3
+
+ghc --make -O2 -optP-include -optPdist/build/autogen/cabal_macros.h -no-user-package-db -package-db /root/workspace/parconc-examples/conc/overlap-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d ./geturls4.hs 
+./geturls4
+
+ghc --make -O2 -optP-include -optPdist/build/autogen/cabal_macros.h -no-user-package-db -package-db /root/workspace/parconc-examples/conc/overlap-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d ./geturls5.hs 
+./geturls5
+
+ghc --make -O2 -optP-include -optPdist/build/autogen/cabal_macros.h -no-user-package-db -package-db /root/workspace/parconc-examples/conc/overlap-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d ./geturls6.hs 
+./geturls6
+
+}}}
+
+
+

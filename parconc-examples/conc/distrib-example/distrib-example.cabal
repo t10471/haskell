@@ -1,0 +1,202 @@
+name:                distrib-examples
+version:             0.3.4
+synopsis:            Examples to accompany the book "Parallel and Concurrent Programming in Haskell"
+-- description:         
+license:             BSD3
+license-file:        LICENSE
+author:              Simon Marlow
+maintainer:          Simon Marlow <marlowsd@gmail.com>
+copyright:           (c) Simon Marlow 2011-2013
+category:            Sample Code
+build-type:          Simple
+cabal-version:       >=1.10
+
+flag Distributed
+  default : True
+
+-- -----------------------------------------------------------------------------
+-- conc-distrib
+
+executable ping
+  main-is: distrib-ping/ping.hs
+  other-modules: DistribUtils
+  build-depends:   base >= 4.5 && < 4.8
+                 , network >= 2.3 && < 2.5
+                 , binary >=0.6.3 && < 0.8
+                 , template-haskell >= 2.7 && < 2.10
+  if impl(ghc <= 7.6)
+      -- prior to ghc-7.4 generics lived in ghc-prim
+      build-depends: ghc-prim
+  if flag(distributed)
+     build-depends:
+                   distributed-process >= 0.4.2 && < 0.5
+                 , distributed-process-simplelocalnet ==0.2.*
+                 , distributed-static ==0.2.*
+  else
+     buildable: False
+  default-language: Haskell2010
+
+executable ping-multi
+  main-is: distrib-ping/ping-multi.hs
+  other-modules: DistribUtils
+  build-depends:   base >= 4.5 && < 4.8
+                 , network >= 2.3 && < 2.5
+                 , binary >=0.6.3 && < 0.8
+                 , template-haskell >= 2.7 && < 2.10
+  if impl(ghc <= 7.6)
+      -- prior to ghc-7.4 generics lived in ghc-prim
+      build-depends: ghc-prim
+  if flag(distributed)
+     build-depends:
+                   distributed-process >= 0.4.2 && < 0.5
+                 , distributed-process-simplelocalnet ==0.2.*
+                 , distributed-static ==0.2.*
+  else
+     buildable: False
+  default-language: Haskell2010
+
+executable ping-tc
+  main-is: distrib-ping/ping-tc.hs
+  other-modules: DistribUtils
+  build-depends:   base >= 4.5 && < 4.8
+                 , network >= 2.3 && < 2.5
+                 , binary >=0.6.3 && < 0.8
+                 , template-haskell >= 2.7 && < 2.10
+  if impl(ghc <= 7.6)
+      -- prior to ghc-7.4 generics lived in ghc-prim
+      build-depends: ghc-prim
+  if flag(distributed)
+     build-depends:
+                   distributed-process >= 0.4.2 && < 0.5
+                 , distributed-process-simplelocalnet ==0.2.*
+                 , distributed-static ==0.2.*
+  else
+     buildable: False
+  default-language: Haskell2010
+
+executable ping-tc-merge
+  main-is: distrib-ping/ping-tc-merge.hs
+  other-modules: DistribUtils
+  build-depends:   base >= 4.5 && < 4.8
+                 , network >= 2.3 && < 2.5
+                 , binary >=0.6.3 && < 0.8
+                 , template-haskell >= 2.7 && < 2.10
+  if impl(ghc <= 7.6)
+      -- prior to ghc-7.4 generics lived in ghc-prim
+      build-depends: ghc-prim
+  if flag(distributed)
+     build-depends:
+                   distributed-process >= 0.4.2 && < 0.5
+                 , distributed-process-simplelocalnet ==0.2.*
+                 , distributed-static ==0.2.*
+  else
+     buildable: False
+  default-language: Haskell2010
+
+-- extra, not in the text?
+executable ping-tc-notify
+  main-is: distrib-ping/ping-tc-notify.hs
+  other-modules: DistribUtils
+  build-depends:   base >= 4.5 && < 4.8
+                 , network >= 2.3 && < 2.5
+                 , binary >=0.6.3 && < 0.8
+                 , template-haskell >= 2.7 && < 2.10
+  if impl(ghc <= 7.6)
+      -- prior to ghc-7.4 generics lived in ghc-prim
+      build-depends: ghc-prim
+  if flag(distributed)
+     build-depends:
+                   distributed-process >= 0.4.2 && < 0.5
+                 , distributed-process-simplelocalnet ==0.2.*
+                 , distributed-static ==0.2.*
+  else
+     buildable: False
+  default-language: Haskell2010
+
+executable ping-fail
+  main-is: distrib-ping/ping-fail.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , network >= 2.3 && < 2.5
+                 , binary >=0.6.3 && < 0.8
+                 , template-haskell >= 2.7 && < 2.10
+  if impl(ghc <= 7.6)
+      -- prior to ghc-7.4 generics lived in ghc-prim
+      build-depends: ghc-prim
+  if flag(distributed)
+     build-depends:
+                   distributed-process >= 0.4.2 && < 0.5
+                 , distributed-process-simplelocalnet ==0.2.*
+                 , distributed-static ==0.2.*
+  else
+     buildable: False
+  default-language: Haskell2010
+
+executable distrib-chat
+  main-is: distrib-chat/chat.hs
+  other-modules: ConcurrentUtils DistribUtils
+  build-depends:   base >= 4.5 && < 4.8
+                 , containers >= 0.4 && < 0.6
+                 , stm ==2.4.*
+                 , async ==2.0.*
+                 , network >= 2.3 && < 2.5
+                 , binary >=0.6.3 && < 0.8
+                 , transformers >=0.3 && <0.5
+                 , template-haskell >= 2.7 && < 2.10
+  if impl(ghc <= 7.6)
+      -- prior to ghc-7.4 generics lived in ghc-prim
+      build-depends: ghc-prim
+  if flag(distributed)
+     build-depends:
+                   distributed-process >= 0.4.2 && < 0.5
+                 , distributed-process-simplelocalnet ==0.2.*
+                 , distributed-static ==0.2.*
+  else
+     buildable: False
+  default-language: Haskell2010
+
+executable distrib-chat-noslave
+  main-is: distrib-chat/chat-noslave.hs
+  other-modules: ConcurrentUtils
+  build-depends:   base >= 4.5 && < 4.8
+                 , containers >= 0.4 && < 0.6
+                 , stm ==2.4.*
+                 , async ==2.0.*
+                 , network >= 2.3 && < 2.5
+                 , binary >=0.6.3 && < 0.8
+                 , transformers >=0.3 && <0.5
+                 , template-haskell >= 2.7 && < 2.10
+  if impl(ghc <= 7.6)
+      -- prior to ghc-7.4 generics lived in ghc-prim
+      build-depends: ghc-prim
+  if flag(distributed)
+     build-depends:
+                   distributed-process >= 0.4.2 && < 0.5
+                 , distributed-process-simplelocalnet ==0.2.*
+                 , distributed-static ==0.2.*
+  else
+     buildable: False
+  default-language: Haskell2010
+
+executable distrib-db
+  main-is: db.hs
+  hs-source-dirs: . distrib-db
+  other-modules: DistribUtils Database
+  build-depends:   base >= 4.5 && < 4.8
+                 , containers >= 0.4 && < 0.6
+                 , stm ==2.4.*
+                 , async ==2.0.*
+                 , network >= 2.3 && < 2.5
+                 , binary >=0.6.3 && < 0.8
+                 , template-haskell >= 2.7 && < 2.10
+                 , transformers >=0.3 && <0.5
+  if impl(ghc <= 7.6)
+      -- prior to ghc-7.4 generics lived in ghc-prim
+      build-depends: ghc-prim
+  if flag(distributed)
+     build-depends:
+                   distributed-process >= 0.4.2 && < 0.5
+                 , distributed-process-simplelocalnet ==0.2.*
+                 , distributed-static ==0.2.*
+  else
+     buildable: False
+  default-language: Haskell2010

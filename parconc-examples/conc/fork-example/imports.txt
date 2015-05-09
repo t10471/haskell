@@ -1,0 +1,9 @@
+fork.hs:import Control.Concurrent
+fork.hs:import Control.Monad
+fork.hs:import System.IO
+reminders.hs:import Control.Concurrent
+reminders.hs:import Text.Printf
+reminders.hs:import Control.Monad
+reminders2.hs:import Control.Concurrent
+reminders2.hs:import Text.Printf
+reminders2.hs:import Control.Monad

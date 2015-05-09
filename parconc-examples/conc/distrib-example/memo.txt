@@ -1,0 +1,5 @@
+ghciの起動方法
+:VimShellInteractive ghci -no-user-package-db -package-db /root/workspace/distrib-examples/conc/par-example/.cabal-sandbox/x86_64-linux-ghc-7.8.4-packages.conf.d
+
+build が通らない・・・
+

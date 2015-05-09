@@ -1,0 +1,44 @@
+name:                server-example
+version:             0.1.0
+synopsis:            Examples to accompany the book "Parallel and Concurrent Programming in Haskell"
+-- description:         
+license:             BSD3
+license-file:        LICENSE
+author:              Simon Marlow
+maintainer:          Simon Marlow <marlowsd@gmail.com>
+copyright:           (c) Simon Marlow 2011-2013
+category:            Sample Code
+build-type:          Simple
+cabal-version:       >=1.10
+
+
+-- -----------------------------------------------------------------------------
+-- conc-server
+
+executable  server
+  main-is: server.hs
+  other-modules: ConcurrentUtils
+  build-depends:   base >= 4.5 && < 4.8
+                 , stm ==2.4.*
+                 , network >= 2.3 && < 2.5
+  default-language: Haskell2010
+
+executable  server2
+  main-is: server2.hs
+  other-modules: ConcurrentUtils
+  build-depends:   base >= 4.5 && < 4.8
+                 , stm ==2.4.*
+                 , async ==2.0.*
+                 , network >= 2.3 && < 2.5
+  default-language: Haskell2010
+
+executable chat
+  main-is: chat.hs
+  other-modules: ConcurrentUtils
+  build-depends:   base >= 4.5 && < 4.8
+                 , containers >= 0.4 && < 0.6
+                 , async ==2.0.*
+                 , stm ==2.4.*
+                 , network >= 2.3 && < 2.5
+  default-language: Haskell2010
+

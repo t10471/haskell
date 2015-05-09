@@ -1,0 +1,140 @@
+name:                strat-example
+version:             0.1.0
+synopsis:            Examples to accompany the book "Parallel and Concurrent Programming in Haskell"
+-- description:         
+license:             BSD3
+license-file:        LICENSE
+author:              Simon Marlow
+maintainer:          Simon Marlow <marlowsd@gmail.com>
+copyright:           (c) Simon Marlow 2011-2013
+category:            Sample Code
+build-type:          Simple
+cabal-version:       >=1.10
+
+extra-source-files:  kmeans/Makefile
+                     parlist.hs
+
+-- -----------------------------------------------------------------------------
+-- Flags
+
+-- -f llvm: enable -fllvm to GHC; requires LLVM to be installed, but
+-- makes the Repa programs faster
+
+flag Llvm
+  default: True
+
+-- -f devil: Enable the image-maniputation programs, which are
+-- disabled by default because they require the devil library which
+-- needs to be installed separately.
+
+flag Devil
+  default: True
+
+-- -f cuda: Build the examples that require accelerate-cuda.  These
+-- need the NVidia CUDA tools installed.
+
+flag Cuda
+  default: False
+
+-- -f-accelerate: Do not build the examples that require accelerate.
+
+flag Accelerate
+  default : True
+
+-- -f-distributed: Do not build the examples that require distributed-process.
+
+flag Distributed
+  default : True
+
+-- -----------------------------------------------------------------------------
+-- par-strat
+
+executable strat
+  main-is: strat.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , parallel ==3.2.*
+  ghc-options: -threaded
+  default-language: Haskell2010
+
+executable strat2
+  main-is: strat2.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , parallel ==3.2.*
+  ghc-options: -threaded
+  default-language: Haskell2010
+
+executable strat3
+  main-is: strat3.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , parallel ==3.2.*
+  ghc-options: -threaded
+  default-language: Haskell2010
+
+executable sudoku5
+  main-is: sudoku5.hs
+  other-modules: Sudoku
+  build-depends:   base >= 4.5 && < 4.8
+                 , parallel ==3.2.*
+                 , array >= 0.4 && <0.6
+  ghc-options: -threaded
+  default-language: Haskell2010
+
+executable rsa
+  main-is: rsa.hs
+  other-modules: ByteStringCompat
+  build-depends:   base >= 4.5 && < 4.8
+                 , bytestring >= 0.9 && < 0.11
+                 , deepseq ==1.3.*
+  default-language: Haskell2010
+
+executable rsa1
+  main-is: rsa1.hs
+  other-modules: ByteStringCompat
+  build-depends:   base >= 4.5 && < 4.8
+                 , bytestring >= 0.9 && < 0.11
+                 , parallel ==3.2.*
+                 , deepseq ==1.3.*
+  ghc-options: -threaded
+  default-language: Haskell2010
+
+executable rsa2
+  main-is: rsa2.hs
+  other-modules: ByteStringCompat
+  build-depends:   base >= 4.5 && < 4.8
+                 , bytestring >= 0.9 && < 0.11
+                 , parallel ==3.2.*
+                 , deepseq ==1.3.*
+  ghc-options: -threaded
+  default-language: Haskell2010
+
+executable kmeans
+  hs-source-dirs: kmeans
+  main-is: kmeans.hs
+  other-modules: KMeansCore
+  build-depends:   base >= 4.5 && < 4.8
+                 , parallel ==3.2.*
+                 , time ==1.4.*
+                 , deepseq ==1.3.*
+                 , monad-par >= 0.3.4 && < 0.4
+                   -- monad-par 0.3 has a bug:
+                   -- https://github.com/simonmar/monad-par/issues/23
+                 , binary >=0.6.3 && < 0.8
+                 , array >= 0.4 && <0.6
+                 , bytestring >= 0.9 && < 0.11
+                 , vector >= 0.10 && < 0.11
+  ghc-options: -threaded
+  default-language: Haskell2010
+
+executable GenSamples
+  hs-source-dirs: kmeans
+  main-is: GenSamples.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , binary >=0.6.3 && < 0.8
+                 , array >= 0.4 && <0.6
+                 , vector >= 0.10 && < 0.11
+                 , random >= 1.0 && < 1.1
+                 , normaldistribution >= 1.1 && < 1.2
+                 , deepseq ==1.3.*
+                 , bytestring >= 0.9 && < 0.11
+  default-language: Haskell2010
+

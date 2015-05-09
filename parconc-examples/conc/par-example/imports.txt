@@ -1,0 +1,58 @@
+findseq.hs:import System.Directory
+findseq.hs:import System.FilePath
+findseq.hs:import System.Environment
+findseq.hs:import Data.List hiding (find)
+findpar.hs:import System.Directory
+findpar.hs:import Control.Concurrent
+findpar.hs:import System.FilePath
+findpar.hs:import Control.Concurrent.Async
+findpar.hs:import System.Environment
+findpar.hs:import Data.List hiding (find)
+findpar2.hs:import System.Directory
+findpar2.hs:import System.FilePath
+findpar2.hs:import Control.Concurrent.Async
+findpar2.hs:import System.Environment
+findpar2.hs:import Data.List hiding (find)
+findpar2.hs:import Control.Exception (finally)
+findpar2.hs:import Data.Maybe (isJust)
+findpar2.hs:import Control.Concurrent.MVar
+findpar2.hs:import Data.IORef
+findpar2.hs:import GHC.Conc (getNumCapabilities)
+findpar5.hs:import Control.Exception
+findpar3.hs:import System.Directory
+findpar3.hs:import System.FilePath
+findpar3.hs:import Control.Concurrent.Async
+findpar3.hs:import System.Environment
+findpar3.hs:import Data.List hiding (find)
+findpar3.hs:import Control.Exception (finally)
+findpar3.hs:import Data.Maybe (isJust)
+findpar3.hs:import Control.Concurrent.MVar
+findpar3.hs:import Control.Concurrent.STM
+findpar3.hs:import Data.IORef
+findpar3.hs:import GHC.Conc (getNumCapabilities)
+findpar3.hs:import CasIORef
+findpar4.hs:import System.Directory
+findpar4.hs:import Control.Concurrent
+findpar4.hs:import System.FilePath
+findpar4.hs:import System.Environment
+findpar4.hs:import Data.List hiding (find)
+findpar4.hs:import GHC.Conc (getNumCapabilities)
+findpar4.hs:import Text.Printf
+findpar4.hs:import Control.Monad.Par.IO
+findpar4.hs:import Control.Monad.Par.Class
+findpar4.hs:import Control.Monad.IO.Class
+findpar4.hs:import Control.Exception
+findpar5.hs:import System.Directory
+findpar5.hs:import Control.Concurrent
+findpar5.hs:import System.FilePath
+findpar5.hs:import System.Environment
+findpar5.hs:import Data.List hiding (find)
+findpar5.hs:import GHC.Conc (getNumCapabilities)
+findpar5.hs:import Text.Printf
+findpar5.hs:import qualified Control.Monad.Par as P hiding (runParIO)
+findpar5.hs:import Control.Monad.Par.IO
+findpar5.hs:import Control.Monad.IO.Class
+CasIORef.hs:import GHC.IORef
+CasIORef.hs:import GHC.STRef
+CasIORef.hs:import GHC.Exts
+CasIORef.hs:import GHC.IO

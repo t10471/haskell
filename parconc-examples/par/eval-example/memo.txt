@@ -1,0 +1,79 @@
+
+ghciの起動方法
+:VimShellInteractive ghci -no-user-package-db -package-db /root/workspace/parconc-examples/par/eval-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d
+
+評価及び弱頭部正規形について {{{
+
+    Prelude Data.Tuple> let x = 1 + 2 :: Int
+    Prelude Data.Tuple> let z = (x,x)
+    Prelude Data.Tuple> :sprint z
+    -- xは未評価
+    z = (_,_)
+    Prelude Data.Tuple> seq z ()
+    ()
+    Prelude Data.Tuple> :sprint z
+    z = (_,_)
+    -- swap (a,b) = (b,a)
+    Prelude Data.Tuple> let z = swap(x,x+1)
+    Prelude Data.Tuple> :sprint z
+    -- zは未評価
+    z = _
+    -- 評価する
+    Prelude Data.Tuple> seq z ()
+    ()
+    Prelude Data.Tuple> :sprint z
+    -- 弱頭部正規形により最初しか評価されない
+    z = (_,_)
+    Prelude Data.Tuple> seq x ()
+    ()
+    Prelude Data.Tuple> :sprint z
+    -- xまでしか評価されない
+    z = (_,3)
+}}}
+
+rpar.hs {{{
+-- -threadedオプションで並列性になる
+-- -O2は最適化
+-- -rtsoptsは実行時オプションの許可
+ghc -O2 rpar.hs -threaded -rtsopts
+
+-- RTS -N2で2コアを使用して実行するという意味
+./rpar 1 +RTS -N2
+time: 0.00s
+(24157817,14930352)
+time: 6.37s
+./rpar 2 +RTS -N2
+time: 2.51s
+(24157817,14930352)
+time: 6.55s
+./rpar 3 +RTS -N2
+time: 6.59s
+(24157817,14930352)
+time: 6.59s
+./rpar 4 +RTS -N2
+time: 6.35s
+(24157817,14930352)
+time: 6.35s
+}}}
+
+sudoku {{{
+sudoku1
+シーケンシャル
+ghc -O2 sudoku1.hs -rtsopts
+./sudoku1 sudoku17.1000.txt
+-sは実行時の統計情報を表示する
+./sudoku1 sudoku17.1000.txt +RTS -s
+
+sudoku2
+2分割
+-threadedは並列を許可 -eventlogはログ出力を許可
+ghc -O2 sudoku2.hs -rtsopts -threaded -eventlog
+./sudoku2 sudoku17.1000.txt +RTS -N2 -s -l
+
+sudoku3
+全て並列化
+
+sudoku4
+fileをそれぞれの行に分割している(IO版seq)を使用しているのでsudoku3より遅い
+}}}
+

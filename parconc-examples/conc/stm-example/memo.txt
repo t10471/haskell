@@ -1,0 +1,50 @@
+ghciの起動方法
+:VimShellInteractive ghci -no-user-package-db -package-db /root/workspace/parconc-examples/conc/stm-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d
+
+STM ソフトウェアトランザクションメモリ
+複数の状態変更操作をグループ可し、不可分操作とすることができる
+
+スレッド(MVar)はデータの取得順序を気をつけないとデッドロックになるがSTMは気にする必要がない
+STMは合成することができ1つのトランザクションに
+なる
+atomically でSTM処理全体を囲みトランザクションを実行する
+retry でトランザクションを破棄し再実行させる、ただし即時再実行するわけではなく、
+データの状態が変更したことを検知して再実行する。起こし忘れが発生しない。
+orElse でイベントの一方を選択することができる。ただし、スレッド(MVar)のような公平性はなく
+左側の優先順位が高くなってします。STMでは公平性は実現できない。
+モナドのバインドがANDでorElseがORである。
+
+MVarではできなかった、unGetTChan が実装できる。(STM が合成可能で変更の管理をしているからブロックの心配がない？)
+
+MVarよりも非同期例外に対して気にする必要がない mask を使わなくても安全にトランザクションをロールバックできる
+
+TMVar と TVar
+TMVar は 自分で retry したいときに使う？
+
+ghc --make -O2 -optP-include -optPdist/build/autogen/cabal_macros.h -no-user-package-db -package-db /root/workspace/parconc-examples/conc/stm-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d ./windowman.hs
+
+ghc --make -O2 -optP-include -optPdist/build/autogen/cabal_macros.h -no-user-package-db -package-db /root/workspace/parconc-examples/conc/stm-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d ./geturlsfirst.hs
+./geturlsfirst
+
+ghc --make -O2 -optP-include -optPdist/build/autogen/cabal_macros.h -no-user-package-db -package-db /root/workspace/parconc-examples/conc/stm-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d ./TChan.hs
+./TChan
+
+./TChan.hs MvarのTVar版
+./TList.hs TChanをListで実装したもの
+./TQueue.hs TListの性能を向上させたもの
+./TBQueue.hs TBQueueの有限個版
+
+TBQueueはreadとwriteで読み込み順を変えると
+デッドロックの危険性があるので注意が必要
+
+STMは公平性は保証されない
+STMはトランザクションのためにログを書いておりリトライのたびに操作を繰り返すので
+データが多い処理は遅くなる
+
+下記いずれかをコメントアウトを外してコンパイル
+-- #define CHAN
+-- #define TCHAN
+-- #define TQUEUE
+-- #define TBQUEUE
+ghc --make -O2 -optP-include -optPdist/build/autogen/cabal_macros.h -no-user-package-db -package-db /root/workspace/parconc-examples/conc/stm-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d ./chanbench.hs
+./chanbench

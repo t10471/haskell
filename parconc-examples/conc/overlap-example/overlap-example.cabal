@@ -1,0 +1,80 @@
+name:                overlap-examples
+version:             0.3.4
+synopsis:            Examples to accompany the book "Parallel and Concurrent Programming in Haskell"
+-- description:         
+license:             BSD3
+license-file:        LICENSE
+author:              Simon Marlow
+maintainer:          Simon Marlow <marlowsd@gmail.com>
+copyright:           (c) Simon Marlow 2011-2013
+category:            Sample Code
+build-type:          Simple
+cabal-version:       >=1.10
+
+-- -----------------------------------------------------------------------------
+-- conc-overlap
+
+executable geturls1
+  main-is: geturls1.hs
+  other-modules: GetURL
+  build-depends:   base >= 4.5 && < 4.8
+                 , containers >= 0.4 && < 0.6
+                 , network >= 2.3 && < 2.5
+                 , HTTP ==4000.2.*
+                 , bytestring >= 0.9 && < 0.11
+  default-language: Haskell2010
+
+executable  geturls2
+  main-is: geturls2.hs
+  other-modules: GetURL
+  build-depends:   base >= 4.5 && < 4.8
+                 , stm ==2.4.*
+                 , bytestring >= 0.9 && < 0.11
+                 , time ==1.4.*
+                 , network >= 2.3 && < 2.5
+                 , HTTP ==4000.2.*
+  default-language: Haskell2010
+
+executable  geturls3
+  main-is: geturls3.hs
+  other-modules: TimeIt GetURL
+  build-depends:   base >= 4.5 && < 4.8
+                 , stm ==2.4.*
+                 , bytestring >= 0.9 && < 0.11
+                 , time ==1.4.*
+                 , network >= 2.3 && < 2.5
+                 , HTTP ==4000.2.*
+  default-language: Haskell2010
+
+executable  geturls4
+  main-is: geturls4.hs
+  other-modules: GetURL
+  build-depends:   base >= 4.5 && < 4.8
+                 , stm ==2.4.*
+                 , bytestring >= 0.9 && < 0.11
+                 , time ==1.4.*
+                 , network >= 2.3 && < 2.5
+                 , HTTP ==4000.2.*
+  default-language: Haskell2010
+
+executable  geturls5
+  main-is: geturls5.hs
+  other-modules: GetURL
+  build-depends:   base >= 4.5 && < 4.8
+                 , stm ==2.4.*
+                 , bytestring >= 0.9 && < 0.11
+                 , time ==1.4.*
+                 , network >= 2.3 && < 2.5
+                 , HTTP ==4000.2.*
+  default-language: Haskell2010
+
+executable  geturls6
+  main-is: geturls6.hs
+  other-modules: TimeIt GetURL
+  build-depends:   base >= 4.5 && < 4.8
+                 , stm ==2.4.*
+                 , bytestring >= 0.9 && < 0.11
+                 , time ==1.4.*
+                 , network >= 2.3 && < 2.5
+                 , HTTP ==4000.2.*
+  default-language: Haskell2010

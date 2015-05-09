@@ -1,0 +1,71 @@
+name:                stm-example
+version:             0.1.0
+synopsis:            Examples to accompany the book "Parallel and Concurrent Programming in Haskell"
+-- description:         
+license:             BSD3
+license-file:        LICENSE
+author:              Simon Marlow
+maintainer:          Simon Marlow <marlowsd@gmail.com>
+copyright:           (c) Simon Marlow 2011-2013
+category:            Sample Code
+build-type:          Simple
+cabal-version:       >=1.10
+
+-- -----------------------------------------------------------------------------
+-- conc-stm
+
+-- not mentioned in the text?
+executable  windowman
+  main-is: windowman.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , containers >= 0.4 && < 0.6
+                 , stm ==2.4.*
+  default-language: Haskell2010
+
+executable  tmvar
+  main-is: tmvar.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , stm ==2.4.*
+  default-language: Haskell2010
+
+executable  geturlsfirst
+  main-is: geturlsfirst.hs
+  other-modules: ConcurrentUtils GetURL
+  build-depends:   base >= 4.5 && < 4.8
+                 , stm ==2.4.*
+                 , bytestring >= 0.9 && < 0.11
+                 , time ==1.4.*
+                 , HTTP ==4000.2.*
+                 , network >= 2.3 && < 2.5
+  default-language: Haskell2010
+
+executable  TChan
+  main-is: TChan.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , stm ==2.4.*
+  default-language: Haskell2010
+
+executable  TList
+  main-is: TList.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , stm ==2.4.*
+  default-language: Haskell2010
+
+executable  TQueue
+  main-is: TQueue.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , stm ==2.4.*
+  default-language: Haskell2010
+
+executable  TBQueue
+  main-is: TBQueue.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , stm ==2.4.*
+  default-language: Haskell2010
+
+executable  chanbench
+  main-is: chanbench.hs 
+  build-depends:   base >= 4.5 && < 4.8
+                 , stm ==2.4.*
+                 , async ==2.0.*
+  default-language: Haskell2010

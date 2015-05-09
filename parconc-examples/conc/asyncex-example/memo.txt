@@ -1,0 +1,54 @@
+ghciの起動方法
+:VimShellInteractive ghci -no-user-package-db -package-db /root/workspace/parconc-examples/conc/asyncex-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d
+
+同期例外    外が起こる個所が前もって分かっているので handle catch などを使う
+非同期例外  処理側からはどこで起こるか分からない、throwTo で投げることができる
+
+非同期例外(割り込み)が起きてほしくない場合、mask を使用することで
+割り込みを遅延させることができる mask 内の restore を使えば、 mask 中でも割り込みできる
+また、そもそも、takeMVar などのブロックする処理は割り込み可能である
+putMVar もブロックする処理ではあるが putMVar を行う前に必ず takeMVar をして必ず空にすることをプログラマーが保証することで割り込ませないようにする必要がある
+(putMVar は空でない場合、空になるまでブロックするので)
+
+uninterruptibleMask :: ((forall a. IO a -> IO a) -> IO b) -> IO b
+を使うと、割り込み可能な処理でさえもブロックすることができる。
+応答しなくなることがあるので細心の注意が必要
+
+getMaskingState :: IO MaskingState
+を使用すると現在のマスク状態が分かる。以下の状態がある
+data MaskingState
+  = Unmasked | -- マスクされていない
+  MaskedInterruptible | -- mask の内部である
+  MaskedUninterruptible -- uninterruptibleMask の内部である
+
+例外ハンドラ中に再帰処理をしてはいけない
+
+forkIO は親スレッドのマスク状態を継承してスレッドを生成する
+
+ghc --make -O2 -optP-include -optPdist/build/autogen/cabal_macros.h -no-user-package-db -package-db /root/workspace/parconc-examples/conc/asyncex-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d ./geturlscancel.hs
+./geturlscancel
+
+
+ghc --make -O2 -optP-include -optPdist/build/autogen/cabal_macros.h -no-user-package-db -package-db /root/workspace/parconc-examples/conc/asyncex-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d ./geturlscancel2.hs
+./geturlscancel2
+
+ghc --make -O2 -optP-include -optPdist/build/autogen/cabal_macros.h -no-user-package-db -package-db /root/workspace/parconc-examples/conc/asyncex-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d ./modifytwo.hs
+./modifytwo
+
+ghc --make -O2 -optP-include -optPdist/build/autogen/cabal_macros.h -no-user-package-db -package-db /root/workspace/parconc-examples/conc/asyncex-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d ./chan3.hs
+./chan3
+
+ghc --make -O2 -optP-include -optPdist/build/autogen/cabal_macros.h -no-user-package-db -package-db /root/workspace/parconc-examples/conc/asyncex-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d ./timeout.hs
+./timeout
+
+ghc --make -O2 -optP-include -optPdist/build/autogen/cabal_macros.h -no-user-package-db -package-db /root/workspace/parconc-examples/conc/asyncex-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d ./catch-mask.hs
+./catch-mask xxx yyy
+Unmasked
+MaskedInterruptible
+0
+
+ghc --make -O2 -optP-include -optPdist/build/autogen/cabal_macros.h -no-user-package-db -package-db /root/workspace/parconc-examples/conc/asyncex-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d ./catch-mask2.hs
+./catch-mask2 xxx yyy
+Unmasked
+Unmasked
+0

@@ -1,0 +1,19 @@
+ghciの起動方法
+:VimShellInteractive ghci -no-user-package-db -package-db /root/workspace/parconc-examples/par/repa-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d
+
+Repa {{{
+RepaSample.hsに記載
+
+Repaはllvmだと早くなる
+ghc --make -O2 -fllvm -optP-include -optPdist/build/autogen/cabal_macros.h -package-db /root/workspace/parconc-examples/par/repa-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d ./fwdense.hs 
+./fwdense 500 +RTS -s
+
+
+ghc --make -O2 -threaded -fllvm -fforce-recomp -rtsopts -optP-include -optPdist/build/autogen/cabal_macros.h -package-db /root/workspace/parconc-examples/par/repa-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d ./fwdense1.hs 
+./fwdense1 500 +RTS -s -N2
+
+
+ghc --make -O2 -threaded -fllvm -fforce-recomp -optP-include -optPdist/build/autogen/cabal_macros.h -package-db /root/workspace/parconc-examples/par/repa-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d ./rotateimage.hs 
+rm out.jpg && ./rotateimage 30 in.jpg out.jpg
+}}}
+

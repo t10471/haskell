@@ -1,0 +1,14 @@
+ghciの起動方法
+:VimShellInteractive ghci -no-user-package-db -package-db /root/workspace/parconc-examples/conc/fork-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d
+
+fork  {{{
+ghc --make -O2 -optP-include -optPdist/build/autogen/cabal_macros.h -package-db /root/workspace/parconc-examples/conc/fork-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d ./fork.hs
+./fork
+
+ghc --make -O2 -optP-include -optPdist/build/autogen/cabal_macros.h -package-db /root/workspace/parconc-examples/conc/fork-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d ./reminders.hs
+./reminders
+
+ghc --make -O2 -optP-include -optPdist/build/autogen/cabal_macros.h -package-db /root/workspace/parconc-examples/conc/fork-example/.cabal-sandbox/x86_64-linux-ghc-7.8.3-packages.conf.d ./reminders2.hs
+./reminders2
+}}}
+
