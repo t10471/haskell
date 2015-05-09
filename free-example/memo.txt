@@ -1,0 +1,59 @@
+VimShellInteractive ghci -no-user-package-db -package-db /root/workspace/free-example/.cabal-sandbox/x86_64-linux-ghc-7.8.4-packages.conf.d
+
+Free モナド
+再帰した型構造を同一の型として表現できるモナド
+普通はコンストラクタがネストするとその分型が増えるがFreeモナドは増えない
+free-example1.hsの例
+Free (Hello (Free (Hello (Free GoodBye)))) :: Free Greeting a
+Free (Hello (Pure ()))                     :: Free Greeting ()
+
+再帰した型構造を実行関数(runxx)とfmapと組み合わせて使う
+
+liftFで関数をFreeモナドに持ち上げる
+
+Control.Monad.Trans.FreeとControl.Monad.Free
+ではFreeの定義が異なるので注意が必要
+
+
+free-example1.hs
+    Freeモナドの基本
+
+free-example2.hs
+    FreeTを使用したサンプル
+
+free-example3.hs
+    3つのサンプル(順次拡張)
+    Pureを使用(本来の使い方？)
+    関数を持ったdataのサンプル
+
+free-example4.hs
+    FreeTを使ったループからの脱出
+    ただ次の関数を呼ばないだけ・・・
+    上のサンプルたちでもやっている
+
+free-example5.hs
+    処理の中断を使ったgoto
+    free-example3.hsでも中断を実装している
+    今回はIntMapにFreeTを保存して使いまわしている
+
+free-example6.hs
+    free-example5.hsのIntMapの中身を操作できるようにしている
+    が、何をしたいのかよくわからない操作になっている
+
+free-example7.hs
+   ReaderT WriterTをFreeTを使って実装 
+
+free-example8.hs
+    FreeでQuickSort
+
+free-example9.hs
+    Freeで遺伝アルゴリズム
+
+free-exampleA.hs
+    Freeでメモ化
+
+free-exampleB.hs
+    FreeTでメモ化
+
+free-exampleC.hs
+    FreeとFreeTで変数化
