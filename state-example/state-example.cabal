@@ -1,0 +1,42 @@
+name:                state-example
+version:             0.1.0
+synopsis:            State Monad Exsample
+-- description:         
+license:             BSD3
+license-file:        LICENSE
+author:              t10471
+maintainer:          t10471 <t104711202@gmail.com>
+copyright:           (c) t10471 2014-2015
+category:            Sample Code
+build-type:          Simple
+cabal-version:       >=1.10
+
+-- -----------------------------------------------------------------------------
+executable state-example
+  main-is: state-example.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , mtl >= 2.2
+  ghc-options: -O2
+  default-language: Haskell2010
+
+executable MyMaybeT
+  main-is: MyMaybeT.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , mtl >= 2.2
+  ghc-options: -O2
+  default-language: Haskell2010
+
+executable Transformers
+  main-is: Transformers.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , mtl >= 2.2
+                 , containers >= 0.5.6
+                 , transformers >= 0.4.2
+  ghc-options: -O2
+  default-language: Haskell2010
+
+executable Tree 
+  main-is: Tree.hs
+  build-depends:   base >= 4.5 && < 4.8
+  ghc-options: -O2
+  default-language: Haskell2010

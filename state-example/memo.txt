@@ -1,0 +1,29 @@
+VimShellInteractive ghci -no-user-package-db -package-db /root/workspace/state-example/.cabal-sandbox/x86_64-linux-ghc-7.8.4-packages.conf.d
+
+基本的なモナド  トランスフォーマー  元の型          結合後の型
+Error           ErrorT              Either e a      m (Either e a)
+State           StateT              s -> (a, s)     s -> m (a, s)
+Reader          ReaderT             r -> a          r -> m a
+Writer          WriterT             (a, w)          m (a, w)
+Cont            ContT               (a -> r ) -> r  (a -> m r ) -> m r
+
+Kind
+元の型           結合した型
+*                m *
+* -> *           * -> m *
+(* -> * ) -> *   (* -> m * ) -> m *
+
+state-example.hs
+State モナドサンプル
+モナド変換サンプル
+
+MyMaybeT.hs  
+モナド変換サンプル
+MonadPlus サンプル
+
+Transformers.hs  
+モナド変換サンプル
+
+Tree.hs
+MonadPlus サンプル
+
