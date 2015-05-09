@@ -1,0 +1,25 @@
+VimShellInteractive ghci -no-user-package-db -package-db /root/workspace/lens-tutorial/.cabal-sandbox/x86_64-linux-ghc-7.8.4-packages.conf.d
+
+Lensの仕組みをLensを使わないでいちから作った場合の説明
+下記のURLの内容
+http://blog.jakubarnold.cz/2014/07/14/lens-tutorial-introduction-part-1.html
+http://blog.jakubarnold.cz/2014/08/06/lens-tutorial-stab-traversal-part-2.html
+
+
+functor-example.hs
+newtype-example.hs
+基本的な説明
+
+foldable-example.hs
+traversable-example.hs
+再帰処理の説明
+
+lens-example1.hs
+lens-example2.hs
+lens-example3.hs
+lens-example4.hs
+lens-example5.hs
+lens-example6.hs
+lensの説明
+
+
