@@ -1,0 +1,23 @@
+name:                typeable-and-data
+version:             0.1.0
+synopsis:            Typeable And Data Example
+-- description:         
+license:             BSD3
+license-file:        LICENSE
+author:              t10471
+maintainer:          t10471 <t104711202@gmail.com>
+copyright:           (c) t10471 2014-2015
+category:            Sample Code
+build-type:          Simple
+cabal-version:       >=1.10
+
+
+executable typeable-and-data1
+  main-is: typeable-and-data1.hs
+  other-modules: MyDebug
+  build-depends:   base >= 4.5 && < 4.8
+                 , mtl >= 2.2
+                 , syb >= 0.4
+  ghc-options: -O2
+  default-language: Haskell2010
+

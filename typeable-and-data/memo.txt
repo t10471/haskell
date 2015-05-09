@@ -1,0 +1,15 @@
+VimShellInteractive ghci -no-user-package-db -package-db /root/workspace/typeable-and-data/.cabal-sandbox/x86_64-linux-ghc-7.8.4-packages.conf.d
+
+typeable-and-data1.hs
+
+下記サイトの内容
+http://chrisdone.com/posts/data-typeable
+
+Typeable が データの単純な型を扱う
+Data が代数型などの複雑な型を扱う
+
+typeable-and-data2.hs
+レコード構文の中身を取得するサンプル
+
+
+
