@@ -1,0 +1,29 @@
+VimShellInteractive ghci -no-user-package-db -package-db /root/workspace/misc-example/.cabal-sandbox/x86_64-linux-ghc-7.8.4-packages.conf.d
+
+misc-example1.hs
+    mono-traversable
+    mono-traversable は、型族を使うことで Functor、Foldable、Traversable の概念を一般化し、
+    単相的な型も多相的な型も扱えるようにしている
+
+misc-example2.hs
+    semigroups(半群)の NonEmpty
+
+misc-example3.hs
+    ファンクタ関連
+
+algebra1.hs
+algebra2.hs
+algebra3.hs
+    再帰
+    http://maoe.hatenadiary.jp/entry/20090820/1250782646
+    http://hackage.haskell.org/package/recursion-schemes-4.1/docs/Data-Functor-Foldable.html
+    https://github.com/Kinokkory/wiwinwlh-jp/wiki/%E3%82%A4%E3%83%B3%E3%82%BF%E3%83%97%E3%83%AA%E3%82%BF#interpreters
+    https://wiki.haskell.org/Catamorphisms
+    http://d.hatena.ne.jp/KeisukeNakano/200903
+
+algebra4.hs
+    Data.Functor.Foldableを使ったサンプル
+
+polykinds1.hs
+    https://www.fpcomplete.com/user/philfreeman/polykinded-folds
+    PolyKindsを使ったファンクタ
