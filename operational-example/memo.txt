@@ -1,0 +1,40 @@
+VimShellInteractive ghci -no-user-package-db -package-db /root/workspace/operational-example/.cabal-sandbox/x86_64-linux-ghc-7.8.4-packages.conf.d
+
+operational-example1.hs
+    stackをOperational(Program)モナドで実装
+
+operational-example2.hs
+    stackをOperational(ProgramT)モナドで実装
+
+operational-example3.hs
+    無限リストの例
+
+operational-example4.hs
+    category-extraにあるYoneda CoyonedaとFreeを使って
+    Operationalモナドを作成
+
+list1.hs
+    長さ付きリストをOperationalモナドで実装
+list2.hs
+    長さ付きリストの長さを代数で表現
+list3.hs
+    ProgramTを使用
+
+
+
+BreadthFirstParsing.hs
+    文字を一文字づつ処理してくparser
+ListT.hs
+    ListTのモナド則を解消した版？    
+LogicT.hs
+    リストモナドの一般化としてLogicTというものがあり、バックトラックを表現できるらしい。
+PoorMansConcurrency.hs
+    マルチプロセス？
+State.hs
+    Stackの例
+TicTacToe.hs
+    マルバツゲーム
+WebSessionMain.hs
+WebSessionState.hs
+    セッション付きWebフォーム
+

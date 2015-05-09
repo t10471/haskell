@@ -1,0 +1,79 @@
+name:                operational-example
+version:             0.1.0
+synopsis:            operational Example
+-- description:         
+license:             BSD3
+license-file:        LICENSE
+author:              t10471
+maintainer:          t10471 <t104711202@gmail.com>
+copyright:           (c) t10471 2014-2015
+category:            Sample Code
+build-type:          Simple
+cabal-version:       >=1.10
+
+-- -----------------------------------------------------------------------------
+Library
+  exposed-modules:   BreadthFirstParsing
+                   , ListT
+                   , LogicT
+                   , PoorMansConcurrency
+                   , State
+  build-depends:   base >= 4.5 && < 4.8
+                 , operational >= 0.2
+                 , mtl >= 2.2
+                 , random >= 1.0
+  ghc-options: -O2
+  default-language: Haskell2010
+
+executable operational-example1
+  main-is: operational-example1.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , operational >= 0.2
+                 , free >= 4.10
+  ghc-options: -O2
+  default-language: Haskell2010
+
+executable operational-example2
+  main-is: operational-example1.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , operational >= 0.2
+                 , free >= 4.10
+  ghc-options: -O2
+  default-language: Haskell2010
+
+executable operational-example3
+  main-is: operational-example1.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , operational >= 0.2
+                 , free >= 4.10
+  ghc-options: -O2
+  default-language: Haskell2010
+
+executable operational-example4
+  main-is: operational-example2.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , operational >= 0.2
+                 , free >= 4.10
+  ghc-options: -O2
+  default-language: Haskell2010
+
+Executable operational-TicTacToe
+  main-is: TicTacToe.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , random == 1.*
+                 , operational >= 0.2
+                 , mtl >= 2.2
+  cpp-options: -DbuildExamples
+  ghc-options: -O2
+  default-language: Haskell2010
+
+Executable WebSession
+  main-is: WebSessionMain.hs
+  Other-Modules: WebSessionState
+  build-depends:   base >= 4.5 && < 4.8
+                 , operational >= 0.2
+                 , mtl >= 2.2
+                 , html >= 1.0
+                 , cgi >= 3001 
+  ghc-options: -O2
+  default-language: Haskell2010
