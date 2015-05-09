@@ -1,0 +1,26 @@
+name:                shell-conduit-example
+version:             0.1.0
+synopsis:            Shell Conduit Exsample
+-- description:         
+license:             BSD3
+license-file:        LICENSE
+author:              t10471
+maintainer:          t10471 <t104711202@gmail.com>
+copyright:           (c) t10471 2014-2015
+category:            Sample Code
+build-type:          Simple
+cabal-version:       >=1.10
+
+-- -----------------------------------------------------------------------------
+executable shell-conduit-example
+  main-is: shell-conduit-example.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , bytestring >= 0.1
+                 , transformers >= 0.4.2
+                 , directory >= 1.2
+                 , conduit >= 1.2
+                 , conduit-extra >= 1.1.6
+                 , shell-conduit >= 4.5.1
+  ghc-options: -O2
+  default-language: Haskell2010
+

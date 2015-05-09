@@ -1,0 +1,5 @@
+VimShellInteractive ghci -no-user-package-db -package-db /root/workspace/shell-conduit-example/.cabal-sandbox/x86_64-linux-ghc-7.8.4-packages.conf.d
+
+monad-control の version が 1 に対応した shell-conduit 4.5.1 がgitにしかないのでcloneし shell-conduit/ に配置
+shell-conduit/examples/ にサンプルが存在
+
