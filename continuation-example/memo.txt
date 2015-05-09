@@ -1,0 +1,8 @@
+VimShellInteractive ghci -no-user-package-db -package-db /root/workspace/continuation-example/.cabal-sandbox/x86_64-linux-ghc-7.8.4-packages.conf.d
+
+continuation-example1.hs
+    基本
+
+
+continuation-example2.hs
+    継続渡しを使うのと使わないのの差のサンプル
