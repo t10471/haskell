@@ -1,0 +1,45 @@
+VimShellInteractive ghci -no-user-package-db -package-db /root/workspace/monad-example/.cabal-sandbox/x86_64-linux-ghc-7.8.4-packages.conf.d
+
+monad-example1.hs
+モナドにある関数の使い方
+
+monad-example2.hs
+下記モナドのサンプル
+Identity
+Maybe
+List
+Except
+State
+
+monad-example3.hs
+下記モナドのサンプル
+Reader 
+Writer
+Cont
+
+monad-example4.hs
+ContT と WriterT の合成
+ReaderT と ContT の合成
+
+monad-example5.hs
+StateT と List の合成
+
+下記は exampleをそのまま取得
+
+ex-reader.hs
+Reader モナド
+
+ex-writer.hs
+Writer モナド
+
+ex-transformer1.hs
+StateT と List の合成
+
+ex-transformer2.hs
+合成サンプル
+
+ex-transformer3.hs
+monadWriter のサンプル
+
+functor-example.hs
+ちょっと変わった形のfunctor
