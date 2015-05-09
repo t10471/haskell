@@ -1,0 +1,32 @@
+VimShellInteractive ghci -no-user-package-db -package-db /root/workspace/control-monad-loop-example/.cabal-sandbox/x86_64-linux-ghc-7.8.4-packages.conf.d
+
+control-monad-loop-example1.hs
+    foreach
+    while
+    doWhile
+    once
+    repeatLoopT
+    iterateLoopT
+    のサンプル
+
+leak.hs
+    iterateLoopT
+    foreach
+    リークさせる目的？
+
+lift-continue.hs
+    foreach
+    2重ループ
+    continue
+    exit
+    
+liftLocal.hs
+    mask_とlocalを使ったliftLocalLoopTのサンプル
+    mask_はそのスコープ中の例外を遅延させる
+    (例外はそのスコープを抜けてから発生するということ)
+    liftLocalLoopTないのcontinueはそのスコープを抜ける
+    localと組み合わせてそのスコープ内だけReaderの変数を変更できる
+
+recycled-numbers.hs
+    foreach
+    2重ループ

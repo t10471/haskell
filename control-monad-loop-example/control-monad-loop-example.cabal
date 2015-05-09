@@ -1,0 +1,59 @@
+name:                control-monad-loop-example
+version:             0.1.0
+synopsis:            control-monad-loop example
+-- description:         
+license:             BSD3
+license-file:        LICENSE
+author:              t10471
+maintainer:          t10471 <t104711202@gmail.com>
+copyright:           (c) t10471 2014-2015
+category:            Sample Code
+build-type:          Simple
+cabal-version:       >=1.10
+
+-- -----------------------------------------------------------------------------
+executable control-monad-loop-example1
+  main-is: control-monad-loop-example1.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , control-monad-loop == 0.1
+                 , transformers >= 0.4.3
+  ghc-options: -O2
+  default-language: Haskell2010
+
+executable leak
+  main-is: leak.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , control-monad-loop == 0.1
+                 , transformers >= 0.4.3
+  ghc-options: -O2
+  default-language: Haskell2010
+
+executable lift-continue
+  main-is: lift-continue.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , control-monad-loop == 0.1
+                 , transformers >= 0.4.3
+                 , transformers-base >= 0.4
+  ghc-options: -O2
+  default-language: Haskell2010
+
+executable liftLocal
+  main-is: liftLocal.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , control-monad-loop == 0.1
+                 , transformers >= 0.4.3
+                 , mtl >= 2.2
+  ghc-options: -O2
+  default-language: Haskell2010
+
+executable recycled-numbers
+  main-is: recycled-numbers.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , control-monad-loop == 0.1
+                 , transformers >= 0.4.3
+                 , mtl >= 2.2
+                 , array >= 0.5
+  ghc-options: -O2
+  default-language: Haskell2010
+
+
