@@ -153,7 +153,12 @@ RoleAnnotationsのサンプル
     KindSignatures 
     RoleAnnotations
 
-
+extentions-exampleM.hs
+TypeClass.scalaのHaskell版
+    
+extentions-exampleN.hs
+図形のサンプル
+    ExistentialQuantification
 
 pokemon/pokemon1.hs
     何の拡張も使わずに実装
