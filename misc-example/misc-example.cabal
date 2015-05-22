@@ -45,3 +45,35 @@ executable algebra4
   ghc-options: -O2
   default-language: Haskell2010
 
+executable void
+  main-is: void.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , void
+
+  ghc-options: -O2
+  default-language: Haskell2010
+
+executable generics4
+  main-is: generics4.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , hashable >= 1.2.3.2
+                 , cereal <= 0.4.1.1
+                 , aeson <= 0.8.1.0
+                 , bytestring
+  ghc-options: -O2
+  default-language: Haskell2010
+
+executable generics5
+  main-is: generics5.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , uniplate >= 1.6.12
+  ghc-options: -O2
+  default-language: Haskell2010
+
+executable generics6
+  main-is: generics6.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , uniplate >= 1.6.12
+  ghc-options: -O2
+  default-language: Haskell2010
+

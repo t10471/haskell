@@ -27,3 +27,59 @@ algebra4.hs
 polykinds1.hs
     https://www.fpcomplete.com/user/philfreeman/polykinded-folds
     PolyKindsを使ったファンクタ
+
+void.hs
+    Data.Voidのサンプル
+
+kind1.hs
+    ProxyによるPolyKindsの例とskiコンビネーターの定義
+    色々なカインドのnewType定義
+kind2.hs
+    TypeFamiliesとDataKindsを使ったBool
+    Notの実装
+kind3.hs
+    長さを持つ配列、空かわかる配列
+kind4.hs
+    TypeListsを使った型レベル数値
+    型レベルの等号
+    Proxy
+kind5.hs
+    Singの実装
+    Singは型に対して値が1つしかないものを作る
+    型演算
+kind6.hs
+    GHC.TypeLitsのnatVal,symbolValの使い方
+kind7.hs
+    型演算の色々なサンプル
+kind8.hs
+    型をラベルとして使うサンプル
+kind9.hs
+    型をラベルとして使うサンプルのレコード版
+kindA.hs
+    ヘテロリスト
+kindB.hs
+    ヘテロリストのShow制限
+kindC.hs
+    型でMapのindexを実装
+kindD.hs
+    型配列のreverse
+    型演算に数学的な法則がないのでSingを使って自分で定義する必要がある
+
+https://github.com/Kinokkory/wiwinwlh-jp/wiki/%E3%82%B8%E3%82%A7%E3%83%8D%E3%83%AA%E3%82%AF%E3%82%B9#generics
+generics1.hs
+    Data.Typeableのサンプル
+generics2.hs
+    Data.Dataのサンプル
+generics3.hs
+    GHC.Genericsのサンプル
+generics4.hs
+    hasableを使ったハッシュ関数の導出
+    cerealを使ったバイナリの導出
+    aesonを使ったjsonの導出
+generics5.hs
+    uniplateのUniplateを使ったサンプル
+    よくわからない・・・
+generics6.hs
+    uniplateのBiplateを使ったサンプル
+    よくわからない・・・
+
