@@ -1,2 +1,24 @@
 VimShellInteractive ghci -no-user-package-db -package-db /root/workspace/lens-example/.cabal-sandbox/x86_64-linux-ghc-7.8.4-packages.conf.d
 
+lens-example1.hs
+    Lensの基礎
+
+lens-example2.hs
+    Lensの色々な関数
+
+lens-example3.hs
+    Lensの主な型とその関数
+
+lens-example4.hs
+    LensとTypeFamilies,ConstraintKindsを使った型クラスの定義
+
+lens-example5.hs
+    makeClassyのサンプル
+
+lens-example6.hs
+    makeClassyのサンプル
+    5よりは関数の定義があり実践的だが継承とかはない
+
+lens-example7.hs
+    makeClassyのサンプル
+    継承とかあり

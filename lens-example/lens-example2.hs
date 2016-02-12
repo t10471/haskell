@@ -7,12 +7,13 @@ import Control.Monad.Trans.State
 import Data.Monoid (Sum(..))
 import Control.Lens.Extras (is)
 import Data.Function
+import qualified Data.Char as Char
+import qualified Data.Map as Map
 import Data.List.Lens
 import Control.DeepSeq (NFData (..), force)
 import Control.Exception (evaluate)
 import Data.Maybe (fromMaybe)
 import System.Timeout (timeout)
-
 
 data Foo a = Foo { _hoge :: a, _piyo :: Int  } deriving (Show, Eq) 
 makeLenses ''Foo 
@@ -24,25 +25,35 @@ tm = 5 * 10 ^ 6
 timingOut :: NFData a => a -> IO a
 timingOut = fmap (fromMaybe (error "timeout")) . timeout tm . evaluate . force
 
-ex = do
+
+getters = do
   print $ sampleFoo ^. hoge
   print $ view hoge sampleFoo 
   print $ views hoge length sampleFoo
 
+setters = do
   print $ piyo .~ 999 $ sampleFoo 
   print $ sampleFoo & piyo .~ 999
   print $ set piyo 999 sampleFoo
   print $ sampleFoo & piyo <.~ 999
   -- (999,Foo {_hoge = "Hello!", _piyo = 999})
 
+modifiers = do
   print $ over piyo (+ 1) sampleFoo
   print $ sampleFoo & piyo %~ (+ 1)
   print $ sampleFoo & piyo <%~ (+ 1)
   -- (101,Foo {_hoge = "Hello!", _piyo = 101})
+  print $ (1,2,3) & _2 %~ (* 100) 
+  print $ (1,2,3) ^._2.to (* 100)
 
+eachs = do
   traverseOf each print (1,2,3)
   (1,2,3) & each %%~ print
+  print $ (1,2,3) & each *~ 10
+  print $ over each Char.toUpper "hello"
+  print $ ("hello","world") & each.each %~ Char.toUpper
 
+cals = do
   print $ (1,2) & both +~ 1
   print $ (1,2) & _2 +~ 2
   print $ (1,2) & _2 <+~ 2
@@ -59,6 +70,7 @@ ex = do
   print $ (1,2) & _2 **~ 2
   print $ (1,2) & _2 <**~ 2
 
+etc = do
   print $ (False,True) & both ||~ True
   print $ (False,True) & _1 <||~ True
   print $ (False,True) & both &&~ True
@@ -73,6 +85,7 @@ ex = do
   print $ (1,2) ^.. both
   print $ toListOf both (1,2)
 
+ex = do
   print $ has (element 0) []
   print $ has _Left (Left 12)
   print $ has _1 ("hello","world")
@@ -92,13 +105,13 @@ ex = do
   print a
   print $ toListOf (droppingWhile (<=3) folded) [1..6]
 
-  print $ (1,2,3) & _2 %~ (* 100) 
-  print $ (1,2,3) ^._2.to (*100)
-
   ["hello","world"] ^! folded.act putStrLn
   print $ ["ab","cd","ef"] ^!! folded.acts
   print $ [Just 1, Just 2, Just 3] ^!? folded.acts
   print $ [Just 1, Nothing] ^!? folded.acts
+  print $ Map.fromList [("hello","there")] ^.at "hello"
+  print $ Map.fromList [("hello","there")] & at "hello" ?~ "world"
+
 
 
 main :: IO ()

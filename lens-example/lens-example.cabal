@@ -29,6 +29,7 @@ executable lens-example2
                  , lens-action
                  , transformers >= 0.4
                  , deepseq >= 1.3
+                 , containers
   ghc-options: -O2
   default-language: Haskell2010
 
@@ -39,5 +40,46 @@ executable lens-example3
                  , lens >= 4
                  , lens-action
                  , transformers >= 0.4
+  ghc-options: -O2
+  default-language: Haskell2010
+
+executable lens-example4
+  main-is: lens-example4.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , mtl >= 2.2
+                 , lens >= 4
+                 , lens-action
+                 , transformers >= 0.4
+  ghc-options: -O2
+  default-language: Haskell2010
+
+executable lens-example5
+  main-is: lens-example5.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , mtl >= 2.2
+                 , lens >= 4
+                 , lens-action
+                 , transformers >= 0.4
+  ghc-options: -O2
+  default-language: Haskell2010
+
+executable lens-example6
+  main-is: lens-example6.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , mtl >= 2.2
+                 , lens >= 4
+                 , lens-action
+                 , transformers >= 0.4
+  ghc-options: -O2
+  default-language: Haskell2010
+
+executable lens-example7
+  main-is: lens-example7.hs
+  build-depends:   base >= 4.5 && < 4.8
+                 , mtl >= 2.2
+                 , lens >= 4
+                 , lens-action
+                 , transformers >= 0.4
+                 , profunctors
   ghc-options: -O2
   default-language: Haskell2010

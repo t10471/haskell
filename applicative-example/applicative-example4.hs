@@ -9,6 +9,7 @@ import Debug.Trace
 -- Tree が実装していないVersion
 -- TreeA が実装してあるVersion
 -- 動きは一緒
+-- 7.10になってMonadは必ずApplicativeになったので実装を追加
 
 data Tree a = Leaf a | Node (Tree a) (Tree a) deriving Show
  
@@ -19,6 +20,11 @@ subst (Node l r) k = Node (subst l k) (subst r k)
 instance Functor Tree where
   fmap f (Leaf a) = Leaf $ f a
   fmap f (Node l r) = Node (fmap f l) (fmap f r)
+
+instance Applicative Tree where
+  pure               = Leaf
+  (Leaf f)   <*> x   = fmap f x
+  (Node f g) <*> x   = Node (f <*> x) (g <*> x)
 
 instance Monad Tree where
   return = Leaf

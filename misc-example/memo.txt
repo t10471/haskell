@@ -83,3 +83,11 @@ generics6.hs
     uniplateのBiplateを使ったサンプル
     よくわからない・・・
 
+fib1.hs
+    メモ化について
+
+misc.hs
+    制約のサンプルだけどうまくいかない
+
+MaxOccurs/MaxOccurs.hs
+    GHCの構文解析の仕組み

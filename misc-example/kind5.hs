@@ -18,7 +18,9 @@ import Prelude hiding (succ)
 -- Singは型に対して値が1つしかないものを作る
 -- 型レベルの演算をするのに便利？
 
-data Nat = Z | S Nat
+data Nat :: * where
+  Z   :: Nat
+  S   :: Nat -> Nat
 
 -- 種を指標とするデータ族
 data family Sing (a :: k)
@@ -29,7 +31,7 @@ data instance Sing (a :: Nat) where
 
 data instance Sing (a :: Maybe k) where
   SNothing :: Sing 'Nothing
-  SJust     :: Sing x -> Sing ('Just x)
+  SJust    :: Sing x -> Sing ('Just x)
 
 data instance Sing (a :: Bool) where
   STrue  :: Sing True
@@ -59,7 +61,7 @@ deriving instance Show (Fin a)
 deriving instance Show a => Show (Vec a n)
 
 type family (m :: Nat) :+ (n :: Nat) :: Nat where
-  Z :+ n   = n
+  Z   :+ n = n
   S m :+ n = S (m :+ n)
 
 type SNat   (k :: Nat)              = Sing k

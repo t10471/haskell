@@ -3,29 +3,32 @@ import Control.Lens
 import Control.Monad.Trans
 import Control.Monad.Trans.State
 
-
-
+-- Lensの基礎
 
 data Man = Man { _name :: String, _age :: Int } deriving (Show, Eq, Ord)
+
 emptyMan :: Man
 emptyMan = Man { _name = "", _age = 0 }
+-- テンプレートでフィールドを作成
 makeLenses ''Man
 
+-- 通常版
 exe1 :: IO ()
 exe1 = do
-  print $ hiratara ^. age
+  putStrLn $ hiratara ^. age
   putStrLn $ hiratara ^. name
   return ()
   where hiratara = (age .~ 36) . (name .~ "hiratara") $ emptyMan
-
+-- Stateモナド版
 exe2 :: IO ()
 exe2 = flip evalStateT emptyMan $ do
-  age .= 30
+  age  .= 30
   name .= "hiratara"
-  lift . print =<< use age
+  lift . putStrLn =<< use age
   lift . putStrLn =<< use name
   return ()
 
+-- タプル操作
 ex1 = do
   print $  ("Foo", "Bar", "Buz") ^. _1
   print $  ("Foo", "Bar", "Buz") ^. _2 
@@ -40,11 +43,11 @@ ex1 = do
 data Point' = Point' { x' :: Int, y' :: Int } deriving (Show, Eq) 
 data Line' = Line' { startPoint' :: Point'
                    , endPoint'   :: Point'
-                 } deriving (Show, Eq)
+                   } deriving (Show, Eq)
 sampleLine' = Line' { startPoint' = Point' { x' = 100, y' = 150 }
                     , endPoint'   = Point' { x' = 200, y' = 250 }
                     }
-
+-- Lensを使わないレコード操作
 ex2 = do
   print $ endPoint' sampleLine'
   print $ sampleLine' { endPoint' = Point' { x' = 1000, y' = 1500 }}
@@ -58,7 +61,7 @@ makeLenses ''Line
 sampleLine = Line { _startPoint = Point { _x = 100, _y = 150 }
                   , _endPoint   = Point { _x = 200, _y = 250 }
                   }
-
+-- Lensを使ったレコード操作
 ex3 = do
   print $ sampleLine ^. startPoint 
   print $ sampleLine ^. endPoint
