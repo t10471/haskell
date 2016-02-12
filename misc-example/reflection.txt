@@ -1,0 +1,490 @@
+A Conceptual Sequence as a Tangible and Efficient Data Structure
+確実で効率的なデータ構造としての概念シーケンス
+
+
+A series of list appends or monadic binds for many monads performs algorithmically worse when left-associated. 
+多くのモナドにおいて左側へのリストへの追加、モナドの結合はアルゴリズム性能が悪いです。
+Continuation-passing style (CPS) is well-known to cure this severe dependence of performance on the association pattern. 
+継続渡しスタイル(CPS)は結合パターンのパフォーマンスにシビアに依存しているがよく知られた解決策です。
+The advantage of CPS dwindles or disappears if we have to examine or modify the intermediate result of that series of appends or binds, before continuing the series. 
+もし一連の操作を続ける前にリストの追加や結合の中間結果を覗いたり更新したりしたら、CPSのアドバンテージは少なくなったり、消えてしまいます。
+Such examination is frequently needed, for example, to control search in non-determinism monads.
+そのような途中で見ることはしばしば必要になります。例えば、非決定モナドの検索をコントロールする場合です。
+
+We present an alternative approach that is just as general as CPS but more robust: 
+私たちはCPSのように汎用的で、より強固な別のアプローチを提示します ：
+it makes series of binds and other such operations efficient regardless of the association pattern -- and also provides efficient access to intermediate results. 
+結合パターンに関係なく、一連の結合や他の操作を効率的にできます。そして、中間結果に効率的にアクセスすることを提供します。
+The key is to represent such a conceptual sequence as an efficient sequence data structure. 
+かぎは効率的なシーケンスデータ構造として概念的なシーケンスを表現することです。
+Efficient sequence data structures from the literature are homogeneous and cannot be applied as they are in a type-safe way to a series of monadic binds. 
+文献によると効率的なシーケンスデータ構造は同次であり型安全な方法でモナドの結合操作を適用することができません。
+We generalize them to type aligned sequences and show how to construct their (assuredly order-preserving) implementations. 
+私たちはそれを型によって整列されたシーケンスによって一般化し、どうやってそれら(確実に順序の保存すること)を実装したのかを示します。
+We demonstrate that our solution solves previously undocumented, severe performance problems in iteratees, LogicT transformers, free monads and extensible effects.
+私たちは以前に正式な文書としてではないが、私たちの示した解決策でシビアなパフォーマンス問題である、iteratees、LogicTトランスフォーマー、フリーモナド、extensible effects
+について問題を解くことを示しました。
+Joint work with Atze van der Ploeg.
+Atze van der Ploegとともに仕事をしました。
+
+Introduction
+導入
+
+Lists are the most familiar example of an ordered sequence of elements, but not the most efficient one. 
+リストは要素が並んでいるシーケンスの例として最もなじみがあります。しかし、最も効率の悪いもののです。
+Adding and removing an element is the constant-time operation at the list's left edge but not at the right edge. 
+左側への要素の追加と削除は定数時間で操作できるが、右側へはそうはいきません。
+Appending two lists also takes linear time. 
+2つのリストをつかするのも線形時間かかります。
+There are many more efficient sequence data structures, described in the well-known book by Chris Okasaki, in which the above operations are (on average) constant-time.
+より効率的なシーケンスデータ構造はたくさんあり、Chris Okasakiによって書かれたよく知られた本には上記の操作が(平均で)定数時間になるものが記載されています。
+The performance advantage of efficient sequences is tangible, e.g., when building a sequence by concatenating many smaller ones, as typically happens in serialization. 
+例えば、多くの小さいものの結合によって構成されているシーケンスのとき(典型的なシリアライゼーション時)、効率的なシーケンスデータのパフォーマンスのアドバンテージは確実です。
+With lists, whose append runs in time proportional to the length of the left argument, even simple examples set off the performance trap, as we shall see below. 
+リストの追加では左側の要素の長さに比例して実行時間がかかります。シンプルな例でもパフォーマンスの劣化を引き起こします。それについては下記で示します。
+Turning to difference lists lets us out: 
+the underlying continuation-passing style (CPS) magically re-associates appends in the most efficient pattern, to the right. 
+差分リストが魔法のように再結合するのは継続渡しスタイル(CPS)が根底にあり、右側へ追加する最も効率的にパターンです。
+Alas, CPS saves us so long as we do not examine the list built so far. 
+悲しいかな、CPSは構築されたリストを覗き見ることができないように保存されています。
+Efficient sequences once and for all solve the performance problems of building sequences from smaller ones and examining intermediate results. 
+効率のよいシーケンスは小さいものから構成されたシーケンスと中間結果を覗き見るパフォーマンス問題をきれいに解決します。
+This work applies what is well-known about the efficient concrete sequences to abstract ones.
+この働きは抽象的なそれによく知られた効率のよい具体的なシーケンスを適用します。
+
+The pattern of building a complex structure, transformation or monadic action by adjoining, composing or binding smaller parts is pervasive. 
+複雑な構造の構築パターン、添加による変換やモナディックアクション、構成や小さい部分の結合はよくみられます。
+Also frequent is the need to examine intermediate results to decide on further steps. A transformation or a monadic action are not sequences. 
+次のステップを決定するのに中間結果をみる必要があることがよくあります。変換やモナディックアクションはシーケンスではありません。
+But the series of steps taken to construct them are a conceptual sequence. 
+しかし、それらを構築する一連のステップは概念的シーケンスです。
+Representing that abstract series of steps as a concrete efficient sequence helps here as well.
+抽象的な一連のステップを具体的な効率のよいシーケンスとして表現することを助けます。
+
+For illustration, we show a simple but slow implementation of iteratees as a Free Monad. 
+図によって私たちは、シンプルだが遅いフリーモナドであるiterateesの実装を示します。
+The monadic bind here, like list append, is associative and performs much better when right-associated. 
+リストの追加のようなモナドの結合は結合性があり、右側への結合よりは良いパフォーマンスをだします。
+Representing the abstract series of binds as an efficient type-aligned sequence data structure algorithmically improves the performance of iteratees. 
+効率的な型による整列されたデータ構造として抽象的な結合ステップの表現はiterateesのアルゴリズムの性能を改善します。
+The Haskell Symposium paper shows more examples of the speed-up, taken from the implementations of delimited control and non-determinism.
+Haskellのシンポジウムの論文はより詳しいい限定操作の実装と非決定性を取り除きスピードアップした例が載っています。
+
+Our observations about the performance problems of appends and monadic binds, 
+and the offered solutions hold in call-by-value as they do in call-by-need and can be implemented in, say, OCaml or Scala. 
+追加とモナドの結合における性能問題についての私たちの観察によって示す解決策は必要呼び出しを使用せず、OcamalやScalaで実装されている値呼びを適用することです。
+For concreteness, on this page we will be using Haskell.
+具体的なことはこのページでHaskellを使って示します。
+
+
+Slow-downs and speed-ups of list concatenations
+リストの結合のスピードダウンとスピードアップ
+
+This background section recalls the real performance problem of building lists by appending many smaller ones, 
+its partial solution by the difference lists and the complete solution by efficient sequences such as Okasaki's catenable queues. 
+このセクションの背景は多くの小さいものを追加するリストの構築という本当のパフォーマンスの問題についてもう一度考えます。
+それの部分的な解決は差分リストであり、完全な解決は効率的なシーケンスであるOkasakiのcatenableキューです。
+Everything in this section is well-known. 
+このセクションのすべてがよく知られています。
+Novelty comes next, in generalizing from concrete sequences to conceptual ones, such as sequences of monadic binds.
+目新しいものは、シーケンスのモナドの結合のような具体的なシーケンスから概念的なそれへの一般化として次にあらわれます。
+
+Although our examples are in Haskell, everything we describe here applies to any other functional language. 
+私たちの例はHaskellであるが、私たちはここで説明するすべてのものは、他の関数型言語へも適用されます。
+Recall, Haskell lists [a] of elements of the type a is a built-in data structure, which could have been defined as
+Haskellのa型の要素のリスト [a] は組み込みデータ構造であるが、下記のように定義されているでしょう。
+
+    data [a] = [] | a : [a]
+
+Furthermore, the type String is an alias of [Char]. 
+さらに言えば、String は [Char]のエイリアスです。
+Henceforth we will be using strings as concrete lists. The list append operation is the infix (++), defined as
+今後、具体的なリストとして文字を使っていきます。リストの追加操作は ++ 演算子として下記に定義します。
+
+    (++) :: [a] -> [a] -> [a]
+    []    ++ y = y
+    (h:t) ++ y = h : (t ++ y)
+
+It traverses the left operand but merely passes around the right one. 
+左オペランドを走査しているが、単に右に渡しているだけです。
+The operation is clearly associative: (l1 ++ l2) ++ l3 and l1 ++ (l2 ++ l3) give the same result for any lists l1, l2 and l3. 
+この操作は確実に結合性があります。 (l1 ++ l2) ++ l3 と l1 ++ (l2 ++ l3) はどんな値のリストでも同じ結果が得られます。
+Yet the asymmetry of handling the operands shows up as the difference in performance: 
+しかし、非対称なオペランドの操作は異なるパフォーマンス結果をもたらします。
+if the lists l1, l2 and l3 have the length n, the right-associative version l1 ++ (l2 ++ l3) needs 2n cons-operations (:) whereas the left-associative version needs 3n. 
+もしリスト l1 l2 l3が長さnの場合、右結合 versionの l1 ++ (l2 ++ l3) は 2nの結合操作(:)が必要で、左結合の場合は3n必要です。
+For appending many small lists, the right-associative pattern does algorithmically better than the left-associative one: linearly rather than quadratically. 
+多くの小さいリストを追加する場合、右結合パターンが左結合の場合よりアルゴリズム性能がよいです。線形ではなく二次関数になります。
+The reader is encouraged to verify this as an exercise. As a slightly more advanced exercise, confirm that the conclusion holds regardless of the call-by-value or call-by-need evaluation strategy.
+読者にはエクササイズとして妥当性の検証をすすめます。少し発展的なエクササイズですが、値呼びや必要呼びに関係無い評価戦略を適用する結論を確認してください。
+
+The problem is clear, and so is the solution: just associate append operations to the right. 
+この問題は明確で解決策があります。右側に追加する操作をすれば良いだけです。
+That is easier said than done, as we are about to see, already on a simple example.
+言うは易し行うは難し。簡単な例で見てみましょう。
+
+Our running example is printing out (serializing) a JSON-like document represented in memory as the data structure
+示している例はメモリ上にあるjsonのようなデータ構造をもつドキュメントを表示(シリアライズ)するものです。
+
+    data JSON = A Int | Node String JSON | Arr [JSON]
+
+    sample = Node "Root" ( Arr [Node "Ch1" (A 1), Node "Ch2" (A 2)])
+
+Integers are atomic documents; documents may be grouped into an array and given a name, as we see in the sample document. 
+Intが最小のドキュメントで、サンプルのように配列にドキュメントを入れたり、名前をつけたりできます。
+Another, deeply nested, sample is produced by makej n, with n nested nodes and no arrays:
+別の深くネストしたサンプルとして、makej n によってNodeがネストしていて、配列の無いサンプルを示します。
+    makej :: Int -> JSON
+    makej 0 = A 1
+    makej d = Node "node-name" (makej (d-1))
+
+The most straightforward function to show this document as a string
+ドキュメントをStringとして表示する最も簡単な関数です。
+
+    showj :: JSON -> String
+    showj (A x)      = show x
+    showj (Node t j) = "{" ++ t ++ " " ++ showj j ++ "}"
+    -- Don't handle Arr yet
+
+has a surprisingly poor performance: showj (makej 4096) produces scant 49Kb of output and yet running length $ showj (makej 4096) takes 4.8 seconds in GHCi on a modern Core i3 laptop. 
+驚くほど貧弱なパフォーマンスを示します。showj (makej 4096) は たった49kbの出力しか生成しないが、
+最新のCore i3 のラップトップでGHCi上でlength $ showj (makej 4096)を実行すると4.8秒かかります。
+As the size of the output increases, the running time grows super-linearly. The performance trap of list append is truly easy to fall into.
+出力のサイズが増えるたび実行時間が超線形で成長します。リスト追加のパフォーマンストラップは本当に簡単に引っ掛かります。
+
+Fortunately, there is a way out: a more efficient representation for lists, namely, difference lists. 
+ラッキーなことに、抜ける方法があります。より効率的な表現のリストである差分リストです。
+They are used for intermediate results and converted to the real list, by fromDiff, at the very end:
+中間結果のために使用され、一番最後に、fromDiffにより、実際のリストに変換されます。
+
+    type DiffList a = [a] -> [a]
+
+    fromDiff :: DiffList a -> [a]
+    fromDiff x = x []
+
+    toDiff :: [a] -> DiffList a
+    toDiff l = \t -> l ++ t
+
+    showjCPS :: JSON -> String
+    showjCPS j = fromDiff (go j)
+      where
+        go :: JSON -> DiffList Char
+        go (A x)      = toDiff $ show x
+        go (Node t j) = (toDiff "{") . (toDiff t)  .
+                        (toDiff " ") . go j . (toDiff "}")
+        -- Don't handle arrays yet
+
+A difference list is a function that represents the list prefix, to be added to the suffix received as an argument. 
+差分リストはリストの先頭を表す関数であり、末尾に受け取った引数を追加します。
+Appending difference lists is composing the corresponding functions, which is constant-time. 
+差分リストの追加は定数時間の対応した関数によって構成されてます。
+Re-writing showj to use difference lists internally is mere replacing the regular list append (++) with the difference-list append (.). 
+内部で差分リストを使ってshowjを書きなおすと、単に通常のリストで追加のときに (++) を使っていたのを差分リストでは (.) に置き換えるだけです。
+It is easy to recognize the re-writing as the conversion of showj into the continuation-passing style: the continuation here is the tail of the list being constructed. 
+showjを継続渡しスタイルになるように書き換えたことが簡単に分かります。ここでの継続は構築されているリストの末尾です。
+Now, length $ showjCPS (makej 4096) runs in 0.03 seconds -- more than 100 times improvement! One can really feel such speed-ups, however puzzling. 
+今、length $ showjCPS (makej 4096) を実行すると 0.03秒になり1、00倍改善しました。スピードアップを感じることができます。しかし、どうでしょう？
+After all, eventually we do rely on the same list append (++) to concatenate strings, see toDiff. 
+結局、toDiffをみるとStringの連結にリストの追加と同様 (++) に頼っています。
+However, CPS always associates these appends to the right, which is most efficient. 
+しかし、CPSは常に右側から追加することで、かなり効率的になっています。
+It is another good exercise for the reader to reflect on how CPS manages such a profitable re-association.
+別の読者へのエクササイズとして、どうやってCPSは効率のよい結合を管理しているのかを深く考えてみてください。
+
+We have not handled the array grouping yet. 
+まだ配列のグルーピングの操作についてふれていません。
+We'd like to show them the way Haskell shows lists, e.g. "[1,2,3,4]" -- with the elements separated by commas and the whole output enclosed in brackets. 
+Haskellのリストのように表示してみましょう。例 [1,2,3,4] (カンマで要素を区切り、括弧でくくります)。
+The format is slightly irregular: there is a comma after each element, except for the last one. 
+フォーマットは少しイレギュラーです。最後の要素を除くすべての要素の後ろにコンマが必要です。
+Everyone who has dealt with separators knows how irritating this exception is. Yet there is an elegant way of writing this formatting by taking its definition literally:
+セパレータを扱うだれもが子の例外にイライラしていることはしっています。しかし、定義したような形式で書くことが美しいのは事実です。
+
+    showLst :: Show a => [a] -> String
+    showLst []    = "[]"
+    showLst (h:t) =
+      let (p:s) = showLst t in
+        p : show h ++ (if s == "]" then s else ","++s)
+
+One can read the code as: to show a non-empty list (h:t), show its tail and then insert the result of show h right after the opening bracket, with the comma. 
+下記のようにコードを読めるでしょう。空ではないリスト (h:t) を表示するには、リストの末尾を文字列化します。そして開き括弧のあとに show h の結果をカンマとともに挿入します。
+Do not put the comma before the closing bracket.
+閉じかっこの前にカンマとおいてはいけません。
+The program demonstrates the examining and modifying the intermediate result (the result of showing the tail of the list), to wedge-in show h and the comma. 
+デモンストレーションしたプログラムは中間結果(配列の末尾を文字列化した結果)を確認し、show h とカンマの割り込みで変更しています。
+This inspection and modification of the intermediate result is called reflection.
+中間結果の検査と修正はリフレクションといいます。
+Let's add this algorithm to our JSON serialization function:
+このアルゴリズムをJSONのシリアライズ関数に追加しましょう。
+
+    showjCPS1 :: JSON -> String
+    showjCPS1 j = fromDiff (go j)
+      where
+        -- this part is as before
+        go (A x)      = toDiff $ show x
+        go (Node t j) = (toDiff "{") . (toDiff t)  .
+                        (toDiff " ") . go j . (toDiff "}")
+        -- the new part: showing arrays of nodes
+        go (Arr [])    = (toDiff "[]")
+        go (Arr (h:t)) = let (p:s) = fromDiff (go (Arr t)) in
+          (p:) . go h . toDiff (if s == "]" then s else "," ++ s)
+
+Recall, the elegant list serialization needs to examine the intermediate result. 
+エレガントなリストのシリアライズには中間結果を見ることが必要です。
+The internally used difference list is a function, and cannot be examined. 
+内部に差分リストを使った関数は中を見ることができません。
+It has to be converted to a regular list first, by fromDiff, and then toDiff back to the difference list to continue the formatting. 
+最初にfromDiffによって通常のリストに変換し、フォーマットを続けるためにtoDiffで差分リストに戻します。
+The fromDiff conversion is expensive, forcing all the list appends that have been put off.
+fromDiffを使った変換は高価で、遅らせていたリストの追加を強制的に行います。
+That is not a good sign.
+これらよくないサインです。
+It is not good indeed: showing an array of a single deeply nested document showjCPS1 (Arr $ replicate 1 (makej 80000)) produces 96Kb of output and takes 0.50 seconds. 
+実によくないです。ネストの深さが単一の配列を表示する showjCPS1 (Arr $ replicate 1 (makej 80000)) は 96kb生成するが 0.50秒かかります。
+On the other hand, showing an array of many shallow documents showjCPS1 (Arr $ replicate 2000 (makej 10)) produces one-quarter of the output but takes 16 times longer!
+一方、多くの浅い配列を表示する showjCPS1 (Arr $ replicate 2000 (makej 10)) は 1/4の生成だが、16秒もかかります。
+Thus difference lists, or the CPS, only partly solve the performance problem of badly associated appends. 
+なので、差分リストやCPSはわースケース時の追加のパフォーマンス問題の部分的な解決なのです。
+In other words, reflection destroys the performance advantage of CPS.
+言い換えるとリフレクションはCPSのパフォーマンスの優位を破壊します。
+
+We can reflect without remorse if we take a better working data structure.
+もっと良いデータ構造を使えば残念な気持ちにならずにリフレクションを使えます。
+Instead of difference lists, with their efficient concatenation but inefficient deconstruction, 
+we turn to the data structure where appending and the left-edge construction/deconstruction are all efficient. 
+結合は効率的だが分解が非効率的な差分リストの代わりに、追加や左側への結合、分解の全てが効率的なデータ構造に目を向けましょう。
+Okasaki's book lists several candidates. 
+Okasakiの本にはいつくかの候補が載っています。
+The Data.Sequence module in the Haskell standard library provides the data structure with exactly the desired properties. 
+Haskellの標準ライブラリにあるData.Sequenceモジュールはちょうどほしかった特性をもったデータ構造を提供してくれます。
+With these sequences (imported with the prefix Seq), the serialization function becomes:
+そのシーケンスを使って(Seqプレフィックスをつけてインポートしています)シリアライズする関数を書きます。
+
+    showjSeq :: JSON -> String
+    showjSeq j = toList (go j)
+      where
+        char :: Char -> Seq.Seq Char
+        char = Seq.singleton
+        str  :: [Char] -> Seq.Seq Char
+        str = Seq.fromList
+        
+        go :: JSON -> Seq.Seq Char
+        go (A x)       = str (show x)
+        go (Node t j)  = char '{' >< str t >< char ' ' >< go j >< char '}'
+        
+        go (Arr [])    = str "[]"
+        go (Arr (h:t)) = let (p:<s) = Seq.viewl (go (Arr t)) in
+          char p >< go h ><
+          (case Seq.viewl s of {']' :< _ -> s; _ -> char ',' >< s})
+
+The code is quite like the original version, but with the different ``append operator'': (><) in place of (++). 
+コードはオリジナルのものとほとんど同じだが、追加操作をする演算子が (++) に代わって (><) になっています。
+Sequences can be deconstructed, with viewl, obtaining the left-most element p and the rest s -- which remains the sequence, 
+rather than a list, and so does not have to be converted back to the sequence after prepending a comma.
+シーケンスはviewlによって分解できます。左端の要素pとそれ以外のsを得ることができます。sはリストではなくシーケンスのままです。
+そして、コンマを追加した後にシーケンスに戻す必要はありません。
+The results speak for themselves: showjSeq (Arr $ replicate 1 (makej 80000)) takes 1 second (slower than with showjCPS1) 
+but showjSeq (Arr $ replicate 2000 (makej 10)) takes only 0.18 seconds, 
+which is 60 times faster than before. 
+結果が代弁してくれます。showjSeq (Arr $ replicate 1 (makej 80000)) は 1秒かかります。(showjCPS1よりも遅いです。)
+しかし、showjSeq (Arr $ replicate 2000 (makej 10)) は たった0.18秒しかかかりません。
+60倍速くなっています。
+Again, a small change in the algorithm gives a remarkable speed-up.
+もう一度いいます。小さなアルゴリズムの変更が目覚ましいスピードアップを手に入れました。
+
+In the upshot, the efficient sequences fully solve the performance problems of building a structure from small components and examining the intermediate results. 
+この結果、効率的なシーケンスは小さい部品から構成された構造の構築と中間結果を見ることのパフォーマンス問題と全て解決しました。
+The solution applies to any associative operation that recursively examines only one of its arguments.
+解決策は再帰的に引数の一つだけ中身をみることができ、どんな結合操作にも適応出来ます。
+
+References
+ReflList.hs [4K] 
+The complete Haskell code for the article
+ 
+
+Slow-downs and speed-ups of monad concatenations
+モナドの結合におけるスローダウンとスピードアップ
+
+We now apply what we have learned about building lists to building monads. 
+リストの構築で学んだことをモナドの構築に適応します。
+The performance of the monad bind, like the list append, may vary with the left argument but not the right one. 
+モナドの結合のパフォーマンスは、リストの追加同様に右側ではなく左側の数によって異なります。
+Hence left-associated binds are a performance hit, similar to the one we saw with list appends. 
+よって、リストの追加のときに見受けられたように、モナドでも、左の結合がパフォーマンスに直撃します。
+Although a monad action is not a sequence, the steps to build it do make a sequence -- a conceptual one. 
+モナドアクションはシーケンスではありませんが、概念的にシーケンスとしてとらえることでシーケンスを構築する手段を使うことができます。
+Representing this sequence concretely, as an efficient data structure, solves the performance problems, even when we examine the intermediate results.
+効率的なデータ構造として具体的なシーケンスを表現することで、パフォーマンス問題を解決します。途中結果を覗いたとしても大丈夫です。
+
+The efficient data structure for monadic binds is not one of the Okasaki sequences. 
+モナドの結合の効率的なデータ構造はOkasakiのシーケンスではありません。
+The latter are all homogeneous. Monads bound in a series, however, have in general different result types. 
+シーケンスは全て同じ性質ですが、モナドの結合は一般的に異なる結果のタイプを持ちます。
+Yet the Okasaki structures easily generalize to the heterogeneous, type-aligned sequences; please see the Haskell Symposium paper for details. 
+しかし、Okasakiの構造は簡単に型による整列されたシーケンスによって同じ性質のものととらえることで一般化出来ます。詳細はHaskellシンポジウムの論文を確認してください。
+Below we use FastTCQueue from type-aligned on Hackage.
+下記にHackageのtype-alignedからFastTCQueueを使った例を示します。
+
+The running example is the incremental parsing, or iteratee. For the sake of explanation, it is not written in full generality. 
+サンプルはインクリメンタルパースやiterateeです。少しばかり説明がありますが、大部分は書いてありません。
+Abstracting over the effect signature gives the Free Monad, and further, Extensible Effects. 
+効率的な記述を抽象化することでフリーモナド、さらにはExtensible Effectsにも応用できます。
+The speed-ups we obtain here apply to all these general constructions. An iteratee It is defined by its effects, which in our case are:
+スピードアップするための汎用化した構築方法を手に入れることができました。効率的なiterateeは下記になります。
+
+    data It i a = Pure a | Get (i -> It i a)
+
+That is, the computation It i a may be pure, producing the value of the type a without any effects. 
+It i aは純粋な計算です。 a型の値は不変な値として生成されます。
+Or it may request to input a value of the type i, and, upon receiving it, eventually produce the value of the type a perhaps after asking for more i values. 
+また、入力として型iの値を要求しItを返します。何回か繰り返した後、やがてa型の値が生成されます。
+Here is the simple iteratee that inputs a value and immediately returns it:
+入力の値をすぐに返すシンプルなiterateeを示します。
+
+    get :: It i i
+    get = Get return
+
+It is analogous to getchar in C, only the type of its input is not limited to characters. 
+入力の型が文字に限定されていないだけで、Cのgetcharに似ています。
+Like getchar, the iteratee get is the simplest parser. To build bigger parsers we have to specify how to compose iteratees:
+getchar同様、上記のiterateeはシンプルなパーサです。大きなパーサを構築するには特別な方法でiterateeを構成しなければいけません。
+
+    instance Monad (It i) where
+      return = Pure
+    
+      Pure x >>= k = k x
+      Get f  >>= k = Get (f >>> k)
+
+where the operation (>>>), technically called Kleisli composition, is just the composition of two effectful functions:
+(>>>) 演算子はKleisli合成と呼ばれ、2つの作用のある関数の合成を行います。
+
+    (>>>) :: Monad m => (a -> m b) -> (b -> m c) -> (a -> m c)
+    f >>> g = (>>= g) . f
+
+Here are a couple of bigger parsers, built from get by monadic bind. The second, addN, inputs and sums up n numbers from the input stream.
+モナドの結合によってgetから構成されている少し大きなパーサを定義します。次に、入力をとり、入力ストリームの数字からnを足し合わせるaddNを定義します。
+
+    addGet :: Int -> It Int Int
+    addGet x = get >>= \i -> return (i+x)
+    -- glibly: addGet x = (+ x) <*> get  
+    
+    addN :: Int -> It Int Int
+    addN n = foldl (>>>) return (replicate n addGet) 0
+
+Finally, feedAll below runs our parsers on the input stream [a]. 
+入力ストリーム[a]をとりパーサーを実行するfeedAllを定義します。
+If an iteratee asks for input, feedAll gives one off the stream, unless the stream is exhausted. 
+iterateeが入力を要求するとfeedAllはストリームが空ではない限りストリームから一つ取り出し渡します。
+In iteratee papers, this function is called an enumerator.
+iterateeの論文でこの関数をエミュレータと呼んでいます。
+
+    feedAll :: It a b -> [a] -> Maybe b
+    feedAll (Pure a) _       = Just a
+    feedAll _        []      = Nothing
+    feedAll (Get f)  (h : t) = feedAll (f h) t
+
+The last clause in the monadc bind, Get f >>= k = Get (f >>> k), has the telltale pattern of recursively examining the left argument and merely passing around the right one. 
+最後の節で言及したモナドの結合 Get f >>= k = Get (f >>> k ) は再帰的に左側の値を確認し、そのまま右側へ渡すというテルタールパターンです。
+One suspects there could be a performance problem similar to the one with list append. 
+リストの追加のとき同様パフォーマンスに問題があるか疑わしいです。
+It is there indeed: the running time of feedAll (addN n) [1..] increases quadratically with n. For n=4000, it takes 9.30 seconds. 
+実際、feedAll (addN n) [1..] は nの2次関数的増加をします。 n = 4000 で9.3秒かかります。
+There has to be a faster way to sum up 4000 integers on a modern laptop, even with all the GHCi interpretation overhead.
+GHCiの解釈オーバーヘッドがあったとしても最新のラップトップで4000の数字を多合わせるのにもっと早くする方法が何かあるはずです。
+
+Just like with list appends, one can try CPS. 
+リストの追加のように一度CPSに挑戦してみましょう。
+Alas, feedAll has another telltale pattern -- examining intermediate result, the iteratee, to find out if it is finished or wants more data. 
+ああ、feedAllは別のテルタールパターンでした。(iterateeは中間結果を確認し、終わりかデータがさらに必要か判断します。)
+Thus findAll is built around reflection, which is a bad news for CPS.
+なので、findAllはリフレクションによって構成されています。これはCPSにとっては悪いニュースです。
+
+We now write an efficient iteratee, to be called ItZ. 
+そこで、ItZという効率的なiterateeを書きました。
+Looking at the monad bind again shows that iteratees are built by (>>>)-composing ``effectful functions'' a -> It i b, for which we define the abbreviation:
+もう一度、モナド結合についてみていましょう。iterateeは作用のある a -> It i a と (>>>) によって構成されています。その省略形を定義します。
+
+    newtype Arr i a b = Arr{unArr :: a -> ItZ i b}
+
+The conceptual series of composition steps can be represented concretely, as a type-aligned sequence:
+一連の概念的な合成ステップは型による整列されたシーケンスによって具体的に表現できます。
+
+    type Arrs i a b = FastTCQueue (Arr i) a b
+
+We can treat Arrs i a b also as an effectful function a -> ItZ i b: the operation appZ below does exactly this conversion. 
+Arrs i a bを作用のある関数 a -> ItZ i b として扱うことができます。下記のappZ操作は正格な変換です。
+Arrs i a b is build by composing a series of Arr i functions. Unlike the functional composition, we can ``uncompose'' Arrs i a b:
+Arrs i a b は 複数の Arr i 関数から構成されています。 関数的な合成とは違い、Arrs i a bを分解できます。
+
+    appZ :: Arrs i a b -> a -> ItZ i b
+    appZ q x = case tviewl q of
+        TEmptyL    -> return x
+        Arr h :| t -> case h x of
+          ZPure x    -> appZ t x
+          ZGet f     -> ZGet (f >< t)
+
+The efficient iteratee hence becomes:
+ということで、効率的な iteratee は下記になります。
+
+    data ItZ i a = ZPure a | ZGet (Arrs i i a)
+
+The continuation -- what to do after acquiring the input value i -- is now represented as the concrete sequence of small compositions rather than one opaque i -> It i a function as before. 
+入力の値iを取得した後に行う継続は以前の不透明な関数 i -> It i a に比べて小さいもので合成された具体的なシーケンスとして表現されています。
+The monad bind appends a new continuation to that sequence:
+モナド結合はシーケンスに新しい続きを追加します。
+
+    instance Monad (ItZ i) where
+      return = ZPure
+    
+      ZPure x >>= k = k x
+      ZGet f  >>= k = ZGet (f |> Arr k)     -- NEW
+
+The simple parser is now
+シンプルなパーサは下記になります。
+
+    getZ :: ItZ i i
+    getZ = ZGet tempty
+
+where tempty is the empty sequence. The other parsers, like addGetZ and addNZ, are exactly as before; see the code below for details.
+tempty は空のシーケンスです。addGetZやaddNZ同様他のパーサーも正格です。下記のコードを見てください。
+The enumerator is almost the same as before, only using appZ to apply the ``data structure continuation'' Arrs i a b to the argument a:
+エミュレータはほとんど以前と一緒ですが、継続的なデータ構造である Arrs i a b を引数aに対して適応するようにappZを使っています。
+
+
+    feedAllZ :: ItZ a b -> [a] -> Maybe b
+    feedAllZ (ZPure a) _       = Just a
+    feedAllZ _         []      = Nothing
+    feedAllZ (ZGet f)  (h : t) = feedAllZ (appZ f h) t
+
+Now, feedAllZ (addNZ n) [1..] runs in time linear with n; for n=4000, it takes 0.13 seconds, which is 70 times faster than the original version. 
+今、feedAllZ (addNZ n) [1..] を実行するとnの線形時間になります。n = 4000 で 0.13秒かかります。これはもとのに比べ70倍速くなっています。
+The improved version also takes 147 times less memory allocated during the GHCi interpretation. 
+そして、改善した方はGHCiによる解釈時のメモリー使用量が147倍少なくなっています。
+The key to the improvement is appZ: when applying the series of continuations Arrs i a b to an argument it avoids (>>>)-composing out all the continuations in the sequence. 
+改善のカギは appZ です。 シーケンス中のArrs i a bを引数に適応する一連の継続から(>>>)で構成された継続を取り除いたことです。
+Rather, it peels off the first one and applies to the argument. 
+確かに、最初のをはぎ取り、引数に適用しています。
+If the resulting iteratee waits for input, we append the tail of the original series of continuations, as it was, to that iteratee's continuation. 
+もし、iternの結果が入力を待っていると、もともとの継続を末尾に追加します。それはまさにiterateeの継続です。
+It is hence important we do the compositions incrementally and the peeling-off and appending all take constant time.
+なので、インクリメンタルな合成とはぎ取りと定数時間で追加することが重要なのです。
+
+
+References
+ReflIter.hs [4K] 
+The complete Haskell code for the article
+
+Conclusions
+
+We have described a general way to improve the performance of Free Monads, delimited control, iteratees and coroutines. 
+フリーモナド、限定継続、iteratee、コルーチンのパフォーマンスを一般的な方法で改善したものを記述しました。
+Unlike CPS, it works regardless of reflection.
+CPSとは違いリフレクションにかかわらず。
+Our approach deals with a conceptual, abstract series of steps 
+私たちのアプローチは概念的で抽象的なステップです。
+-- which are not lists, not homogeneous, and not even data structures
+リストや同じものやデータ構造である必要はありません。
+-- and represents it as a concrete and efficient sequence data structure.
+具体的で効率的なシーケンスデータ構造として表現します。
+The approach applies to any associative operator that recursively traverses only one of its arguments.
+このアプローチはどんな結合演算子でも、再帰的に逐一的に引数の一つに適用できます。

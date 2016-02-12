@@ -1,0 +1,550 @@
+http://dlaing.org/cofun/posts/free_and_cofree.html
+
+Free for DSLs, cofree for interpreters
+freeはDSLのために、 cofreeはインタープリターのために
+
+This is the first post in a series of posts, which will cover the material from a talk I gave at YOW! Lambda Jam, titled “Cofun with Cofree Comonads”.
+これはYOW! Lambda JamにおいてCofun with Cofree Comonadsという題名で話した資料をカバーする一連の記事のうちの最初の記事です。 
+The slides, these posts, and the associated code are in the github repository, 
+although the code is evolving at a steady pace and the code that supports future draft posts is likely to change a lot between now and when I get the related blog posts together.
+その話した内容のスライドと関連するコードはgithubのリポジトリにあります。
+しかし、コードは常に変化しており、将来の記事に対応するために現在のものと乖離があるかもしれませんが、この記事に常に関連があります。
+
+An introduction to free monads for DSLs
+DSLのためのfreeモナドの紹介
+
+I’m not going to be getting into the underlying theory of free monads to any extent in these posts.
+この記事ではfreeモナドの基本的な理論について立ち入ることはありません。
+Instead I’ll be focusing on the use of free monads in order to build something like a DSL (domain-specific language).
+その代り、DSLを構築するためにfreeモナドを使う方法に焦点を当てていきます。
+Gabriel Gonzalez has written some great posts on free monads here and here. 
+Gabriel Gonzalezはfreeモナドについてのよい記事を書いています。
+If you haven’t come across free monads before, I recommend reading those posts before continuing, because I’m most likely going to butcher the explanation in my rush to get to cofree.
+もし、これまでにfreeモナドと出会っていなければ、この記事を読み続ける前にそれらの記事を読むことを勧めます。
+because I’m most likely going to butcher the explanation in my rush to get to cofree.(訳がわからない)
+
+Free
+
+The Free data type has two constructors:
+Freeのデータ型は2つのコンストラクタを持っています。
+
+data Free f a =
+    Pure a
+  | Free (f (Free f a) )
+
+If you squint, this can be viewed as a kind of tree.
+目をこらしてみると木構造が見つけられるでしょう。
+The Pure constructor can be viewed as the leaves of a tree. The Free constructor can be viewed as the branches.
+Pureコンストラクタが木の葉として見ることができます。Freeコンストラクタは枝として見ることができます。
+If f is a Functor and we use the functors-as-containers analogy, then we have a container of Free f as.
+もし、fがFunctorでコンテナとしてファンクタを使えば、Free f のコンテナを持っていると類推できます。
+Additionally, if f is a Functor then we can define a Monad instance for Free f:
+さらに、fがFunctorならば、Free fをMonadのインスタンスとして定義することができます。
+
+instance Functor f => Monad (Free f) where
+  return x = Pure x
+  (Pure r) >>= f = f r
+  (Free x) >>= f = Free (fmap (>>= f) x)
+
+In the above instance
+上記のインスタンスは
+
+    return turns a pure value into a leaf of the tree
+    returnは純粋な値を木の葉に変えます
+    >>= takes a function for turning pure values into trees, and substitutes the leaves with the trees which result from running that function on the values in the leaves
+    >>= は純粋な値を木に変えるための関数をとり、葉と葉の値で関数を実行した結果の木を置き換えます。
+
+Our toy DSL
+簡単なDSL
+
+It turns out this is pretty handy for defining and working with DSLs, so lets put a toy DSL together in order to see what this actually gives us.
+DSLの定義と働きが便利であるということが分かったので、実際にDSLの恩恵をしるために簡単なDSLを構築してみましょう。
+The DSL will be used to track the running total as we add to, clear, and query the total.
+このDSLは追加、クリア、合計の問い合わせを追跡する目的で使います。
+First we need to define the underlying functor:
+最初に基礎となるfunctorの定義が必要です。
+
+data AdderF k =
+    Add Int (Bool -> k)
+  | Clear k
+  | Total (Int -> k)
+
+The type parameter k can be thought of as “what to do next”.
+型引数kは次の何かと考えてください。
+The DSL will have three commands
+このDSLは3つの操作をもっています。
+
+    add an Int to the total, after which we get hold of a Bool which indicates if we can continue
+    合計にIntを加算します。その後、続けるかどうかを示すBool値を保持した関数を取得します。
+        if the Bool is true, the Int has been added to the total
+        BoolがtrueならIntは加算を続けます
+        if the Bool is false, the Int would have overflowed the counter the service is using to track the total, so the total is left unchanged
+        Boolがfalseならカウンターは桁あふれしているので合計はそのままにしておきます
+        we can use that Bool to determine what we will do next
+        Bool値を使って続けるかどうか決定します
+    clear the total, and then move on to the next DSL action.
+    合計をクリアします。そして、次のDSLの操作に移ります
+    ask for the total
+    合計を訪ねます。
+        we can choose our next action based on the Int that we get back.
+        取得した合計を基にして次の操作を選べます。
+
+This has a functor instance:
+下記がfunctorのインスタンスです。
+
+instance Functor AdderF where
+  fmap f (Add x k) = Add x (f . k)
+  fmap f (Clear k) = Clear (f k)
+  fmap f (Total k) = Total (f . k)
+
+but we could have turned on the DeriveFunctor language extension and gotten this for free.
+しかし、DeriveFunctor拡張を使えばただでてい似れることができます。
+Now we have what we need to create a monad for manipulating our DSL:
+DSLを操作するモナドを作る必要があります。
+
+type Adder a = Free AdderF a
+
+At this point we have lost our k parameter from before.
+ここでのポイントは、kの引数を消すことです。
+If we unfold the definitions a little, we end up with the following:
+定義を少し展開するなら、下記のようにして終えます。
+
+type Adder a =
+    Pure a
+  | Free (Add Int (Bool -> Adder a))
+  | Free (Clear (Adder a))
+  | Free (Total (Int -> Adder a)
+
+If we were thinking of k as “what to do next”, it is now either
+kを次にどうするかだと考えるならば、どちらかです。
+    return a value
+    値を返す
+    carry out another action in the Adder monad
+    Adderモナドの別の操作を続ける
+
+We can also add some extra effects into the mix by using FreeT:
+FreeTを使うことで別の作用を追加することができます。
+
+type AdderT m a = FreeT AdderF m a
+
+Combinators for the DSL
+DSLのコンビネーター
+
+At the moment this is a bit inconvenient to work with, so we use liftF from the free package to build the combinators for working in our language from the data type:
+今のままでは使うのに少し都合が悪いので、freeパッケージのliftFを使って作った言語のデータ型を使用してコンビネーターを構築します。
+
+add :: Int -> Adder Bool
+add x = liftF $ Add x id
+
+clear :: Adder ()
+clear = liftF $ Clear ()
+
+total :: Adder Int
+total = liftF $ Total id
+
+We can generalize this in order to work with other effects:
+別の作用を伴って動作するように一般化することもできます。
+
+
+type AdderT m a = FreeT AdderF m a
+
+add :: Monad m => Int -> AdderT m Bool
+add x = liftF $ Add x id
+
+clear :: Monad m => AdderT m ()
+clear = liftF $ Clear ()
+
+total :: Monad m => AdderT m Int
+total = liftF $ Total id
+
+If we instantiate m as Identity then the two are equivalent.
+もしmをIdentitiyにすれば2つは等しくなります。
+And that’s it. We know have our own monad for manipulating the DSL, which means we can use do-notation, 
+we can sequence and traverse these commands, 
+and generally go to town with all of the existing machinery we have in the Haskell ecosystem for building things with monads.
+モナドであるDSLの操作にdo記法が使えるということを知っているので、コマンドを並べて処理することができます。
+そして、モナドによって構築されたHaskellのエコシステムは全て機械的に処理できます。
+
+We also haven’t made any reference to how this DSL will be interpreted. 
+どうやってDSLを解釈するのかというリファレンスをまだ作っていません。
+That gives us a lot of freedom, which also allows us to build different interpreters for testing and for production without changing our DSL or anything built on top of it.
+これは多くの自由を与えてくれています。DSLの変更や修正をすることなくテスト環境と本番環境で異なるインタープリターを構築することができます。
+
+Building some extensions
+いくつかの拡張を構築
+
+We know that the counter tracking the total can overflow, but we don’t have the ability to ask what it’s limit is.
+追跡しているカウンターが桁あふれすることを知っているが、限界をたずねる機能を持っていません。
+Thankfully, we have everything we need to write one.
+ありがたいことに、それを記述することが可能です。
+The findLimit function captures and restores the total, so that we’ll play nicely with out functions that work with the Adder monad, and calls out to a helper function to actually find the limit:
+findLimit関数は合計を保持したり解放出来ます。Adderモナドを使った関数でlimitを見つける補助関数を呼び出して試してみましょう。
+
+findLimit :: Adder Int
+-- or if we want to be more general:
+--   findLimit :: Monad m => AdderT m Int
+findLimit = do
+  -- capture the old count
+  t <- total
+  -- clear the count
+  clear
+  -- seek out the limit
+  r <- execStateT findLimit' 0
+  -- restore the old count
+  clear
+  _ <- add t
+  -- return the result
+  return r
+
+As Adder is a monad, we can put it in a stack of monad transformers. In this case we use StateT to keep track of how much we’ve added to the total so far.
+Adderはモナドなのでモナドトランスフォーマーのスタックに入れることができます。このケースではこれまでどのくらい合計に追加したのかを記録するのにStateTを使っています。
+We have execStateT findLimit' 0 in findLimit which will start the state at 0 and return whatever it ends up at when we finish with findLimit', 
+so we just need to increment both our total and our state until we overflow and all should be well.
+findLimit内にexecStateT findLimit' 0があります。これは0からはじめてfindLimit'が終了したら値が返されます。
+桁あふれするまでは合計とstate内の両方の増加が必要です。これらは全てうまくいきます。
+
+findLimit' :: StateT Int Adder ()
+findLimit' = do
+  -- add 1 to the total
+  r <- lift $ add 1
+  -- check for overflow
+  when r $ do
+    -- if no overflow, add to our state counter ...
+    modify (+ 1)
+    -- and continue
+    findLimit'
+
+Ad-hoc interpretation of our free monad
+アドホックなfreeモナドの解釈
+
+At this point, some folks would build an interpreter for their DSL that may look a little like this:
+ここで、ある人々はDSLを用いて下記のようなインタープリターを構築するでしょう。
+
+interpret :: Monad m => Int -> Int -> AdderT m r -> m r
+interpret limit count a = do
+  mr <- runFreeT a
+  case mr of
+    Pure r -> return r
+    Free (Add x k) ->
+      let
+        count' = x + count
+        test = count' <= limit
+        next = if test then count' else count
+      in
+        interpret limit next (k test)
+    Free (Clear k) ->
+      interpret limit 0 k
+    Free (Total k) ->
+      interpret limit count (k count)
+
+We can encapsulate the recursion with things like iter, iterT and iterTM, and I’ve written iterTTM in the accompanying to show how that works in this case.
+iter、iterT、iterTMなどをつかって再帰を隠すことができます。このケースでiterTTMをつかった場合どのように動くのかを紹介します。
+That’s fine, but I think we can do better.
+より良くなるだろうと思います。
+
+Cofree
+
+If you’re not familiar with comonads, I highly recommend another of Gabriel Gonzalez’s posts. 
+もし、コモナドについて詳しくなければ、Gabriel Gonzalezの記事を読むことを勧めます。
+I’ve also written this based on the rushed explanation I gave in my talk, but you should read Gabriel’s post instead.
+講演で話した内容を急いで説明した記事を書いていますが、Gabrielの方を読んだ方がいいでしょう。
+We won’t need much familiarity with comonads now, but it’ll probably come in handy for subsequent posts.
+今はコモナドにそんなに精通している必要はありません。しかし、続く記事では役に立つでしょう。
+Where Free was a sum type, Cofree is the product type:
+Freeは直和型なら、Cofreeは直積型です
+
+data Cofree f a = a :< f (Cofree f a)
+
+You can also view this as a kind of tree, except we’ve got values at the branching points instead of at the leaves. 
+これも一種のツリーにみえます。しかし、葉から値を取得するのではなく枝から取得します。
+This make Cofree handy for working with interpreters that run forever, since we can lazily build an infinite Cofree and then travel through the tree as we like.
+Cofreeはインタープリターとして使いやすく、それは永遠に実行することができます。なので、無限なCofreeを怠惰に構築でき、木を好きに行き来できます。
+
+Again, if f is a functor then we have a Comonad for Cofree f:
+再度、fがファンクターだとしてCofree fをコモナドとします
+
+instance Functor f => Comonad (Cofree f)
+  extract (a :< _) = a
+  duplicate c@(_ :< fs) = Cofree c (fmap duplicate fs)
+
+An interpreter for our DSL
+DSLのインタープリター
+
+We’re now specifying an interpreter rather than a DSL. 
+今、DSLではなく、インタープリターについて詳細に述べます。
+At any point in time, the interpreter needs to be able to handle any of our DSL actions. 
+いかなる点でも、インタープリターはDSLのアクションを操作できる必要があります。
+Where we had a sum type of three actions in the DSL, we now have a product type of three handlers in the interpreter.
+3つのアクションのあるDSLの直和型があった場合、3つの操作出来るインタープリターの直積型が必要です。
+
+data CoAdderF k = CoAdderF {
+    addH   :: Int -> (Bool, k)
+  , clearH :: k
+  , totalH :: (Int, k)
+  }
+
+The type parameter k represents the handlers that we’ll be using once we’ve interpreted the next action.
+型パラメータkは使うために次のアクションを解釈したハンドラーを表します。
+In order to make a Comonad out of this we need a Functor instance. We could just use DeriveFunctor, but it’s easy enough to write out here:
+コモナドを作るためにFunctorのインスタンスが必要です。DeriveFunctorを使えばすぐできますが、自分で書いても十分簡単です。
+
+instance Functor CoAdderF where
+  fmap f (CoAdderF a c t) = CoAdderF
+    (fmap (fmap f) a)
+    (f c)
+    (fmap f t)
+
+Providing an interpretation for our interpreter
+解釈を与えるインタープリター
+
+We can use coiter to lazily build up a Cofree value.
+Cofreeの値を怠惰に構築するのにcoiterを使います。
+
+coiter :: Functor f => (a -> f a) -> a -> Cofree f a
+
+We just need a seed value and a function which will take us from one level to the next.
+シードとなる値と、ある段階から次の段階へ連れてってくれる関数が必要です。
+This will expand
+次のように拡張できます
+
+coiter next start
+
+to
+下記へ
+
+start :< coiter next <$> next start
+
+to
+下記へ
+
+start :< next start :< coiter next <$> (next . next $ start)
+
+and so on.
+続きます。
+
+So armed, we begin the definition of our interpreter:
+インタープリターの定義から始めましょう。
+
+type Limit = Int
+type Count = Int
+
+type CoAdder a = Cofree CoAdderF a
+
+mkCoAdder :: Limit -> Count -> CoAdder (Limit, Count)
+mkCoAdder limit count = coiter next start
+  where
+    next w = CoAdderF (coAdd w) (coClear w) (coTotal w)
+    start = (limit, count)
+
+At this point we just need to define coAdd, coClear and coTotal.
+ここで、coAdd coClear coTotalの定義が必要になります。
+Clearing the current total is pretty self explanatory:
+現在の合計をクリアするのは、かなり自明です。
+
+coClear :: (Limit, Count) -> (Limit, Count)
+coClear (limit, count) = (limit, 0)
+
+As is querying for the current total:
+現在の合計を問い合わせるのは、
+
+coTotal :: (Limit, Count) -> (Int, (Limit, Count))
+coTotal (limit, count) = (count, (limit, count))
+
+There are a few more moving parts involved when adding to the total:
+合計に追加するのはもう少し入り組んでいます。
+
+coAdd :: (Limit, Count) -> Int -> (Bool, (Limit, Count))
+coAdd (limit, count) x = (test, (limit, next))
+  where
+    count' = count + x                        -- 1
+    test = count' <= limit                    -- 2
+    next = if test then count' else count     -- 3
+
+At (1) we add the incoming x to the current total count, to get the (potential) new total count'.
+1で現在の合計countにxを加算し、新しい合計(仮定)count'を得ます。
+At (2) we test to see if this new total is beyond our internal limit. This is bound as test, which is part of what coAdd returns
+2で新しい合計がlimitを越えているか確認し、testとして束縛しcoAddで結果を返します。
+At (3) we determine the new total. If count' is beneath the limit then we should update the total, otherwise we leave it where it was.
+3で新しい値を返すか決定します。count'がlimit以下ならtotalを更新し、そうでなければ何もしないでtotalを返します。
+
+Now we an interpreter that is independent from our DSL. 
+DSLと独立してインタープリターを作成しました。
+
+Just like with our DSL, we can build on things on top of our interpreter, 
+we can destruct the Cofree structure in order to match it to a DSL, and we do that for different DSLs for different purposes.
+DSLのようにインタープリター上に構築出来ます。
+Cofreeの構造をDSLに合わせるために分解することができます。そして、異なるDSLは異なる目的で行います。
+
+
+Combining the free and cofree
+freeとcofreeをつなぎ合わせる
+
+There is a handy way to bring Free and Cofree together, which has previously been discussed by Ed Kmett and Dan Piponi.
+FreeとCofreeをつなぎ合わせる簡単な方法があります。これについて、Ed KmettとDan Piponiと議論しました。
+I’ll be using the terminology - and some of the instances - from Dans post.
+専門用語といくつかのインスタンスを使います。(Danの記事より)
+We start by introducing a new typeclass, Pairing:
+新しい型クラスPairingの紹介から始めます。
+
+class (Functor f, Functor g) => Pairing f g where
+    pair :: (a -> b -> r) -> f a -> g b -> r
+
+The simplest example is with the Identity functor:
+最もシンプルなサンプルとしてIdentityファンクターを示します。
+
+instance Pairing Identity Identity where
+  pair f (Identity a) (Identity b) = f a b
+
+We can step it up a notch:
+もう少し頑張ります。
+
+型の定義 (これは本文には無し)
+uncurry :: (a -> b -> r ) -> (a, b) -> r
+p :: a -> b -> r
+f :: a -> a1
+
+instance Pairing ((->) a) ((,) a) where
+  pair p f = uncurry (p . f)
+
+型の定義 (これは本文には無し)
+p :: a -> b -> r
+f :: (a, a1)
+g :: a -> b
+
+instance Pairing ((,) a) ((->) a) where
+  pair p f g = p (snd f) (g (fst f))
+
+Although we can save some time on the second version:
+時間の節約として次の定義を使うこともあります
+
+instance Pairing ((->) a) ((,) a) where
+  pair p f = uncurry (p . f )
+
+instance Pairing ((,) a) ((->) a) where
+  pair p f g = pair (flip p) g f
+
+So what does this buy us? Given a Pairing between the underlying functors f and g, we can create a Pairing between Cofree f and Free g:
+これは、我々に何を買いますか？(意味不明) PairingにファンクターであるfとgがあることでCofree fとFree gであるPairingを作れます。
+
+instance Pairing f g => Pairing (Cofree f) (Free g) where
+  pair p (a :< _  ) (Pure x)  = p a x
+  pair p (_ :< fs ) (Free gs) = pair (pair p) fs gs
+
+The pairing for our underlying functors isn’t hard to do - mostly since we built the CoAdderF type with pairing in mind.
+ファンクターを持っているペアリングは難しくないです。ほとんどペアリングとCoAdderFで作れます。
+
+instance Pairing CoAdderF AdderF where
+  pair f (CoAdderF a _ _) (Add x k) = pair f (a x ) k
+  pair f (CoAdderF _ c _) (Clear k) = f c k
+  pair f (CoAdderF _ _ t) (Total k) = pair f t k
+
+Note that we’re using the Pairing instance for (->) and (,) in the case of Total, and could have done something similar for Add if we’d tupled its arguments.
+TotalのケースでPairingのインスタンスとして (->) と (,) を使っています。
+そして、Addの引数がタプルであるかのようにしています。
+
+Making use of the pairing
+ペアリングの使い方
+
+Now let us make use of all of this.
+使いかを説明します。
+Given an arbitrary interpreter, we can find its limit:
+インタープリターが与えられると、limitをさがします。
+
+runLimit :: CoAdder a -> Int
+runLimit w = pair (\_ b -> b) w findLimit
+
+such that this should hold for arbitrary x:
+任意のxを用意します。
+
+testLimit :: Int -> Bool
+testLimit x = runLimit (mkCoAdder x 0) == x
+
+The Pairing is what allows us to define our DSL and interpreter independently from one another while still being able to bring them together like this.
+PairingはDSLを定義し、インタープリターが独立していることを許し、つなぎ合わせることもできます。
+
+Pairing the functors under DSLs and Interpreters
+PairingのDSLとインタープリターのファンクター
+
+In general, if we have a sum type for our DSL then we’ll have a product type for our interpreter.
+一般的に直和型のDSLに対しては直積型のインタープリターが必要です。
+If we have a functor for a DSL which is a sum of commands:
+DSLのファンクターはコマンドの和です。
+
+data DslF k =
+    Sum_1 k
+  | Sum_2 k
+  | ...
+  | Sum_n k
+
+then we’ll start build the functor for an interpreter as a product of handlers like this:
+そして、インタープリターのファンクターを構築できます。下記のようにハンドラーの積です。
+
+data InterpreterF k = InterpreterF {
+    Product_1 k
+  , Product_2 k
+  , ...
+  , Product_n k
+  }
+
+and the pairing will look like:
+そして、ペアリングは下記のようになります。
+
+instance Pairing InterpreterF DslF where
+  pair f (InterpreterF j _ ... _) (Sum_1 k) = f j k
+  pair f (InterpreterF _ j ... _) (Sum_2 k) = f j k
+  ...
+  pair f (InterpreterF _ _ ... j) (Sum_n k) = f j k
+
+There is a little more going on if our commands have arguments and return results.
+もう少し続けます。もしコマンドが引数を持っていたり戻り値があったらどうしましょう？
+Say we have a functor for DSL like this:
+DSLのファンクターとして下記のようになります。
+
+data DslF k =
+    Sum_1 Arg_1 Arg_2 ... Arg_n ((Res_1, Res_2, ..., Res_m) -> k)
+  | Sum_2 k
+
+This will result in this functor for the paired interpreter
+ペアのインタープリターのファンクタから結果を得ます。
+
+data InterpreterF k = InterpreterF {
+    Product_1 ((Arg_1, Arg_2, ..., Arg_n) -> (Res_1, Res_2, ..., Res_m, k))
+  , Product_2 k
+  }
+
+with the following pairing:
+ペアは下記になります。
+
+instance Pairing InterpreterF DslF where
+  pair f (InterpreterF j _) (Sum1 a_1 a_2 ... a_n k) =
+    let
+      (r_1, r_2, ..., r_m, j') = j (a_1, a_2, ..., a_n)
+      k'                       = k (r_1, r_2, ..., r_m)
+    in
+      f j' k'
+  pair f (InterpreterF _ j) (Sum2 k) = f j k
+
+You can do funkier things than this, but that should be enough to get you started.
+もっとファンキーなのができるが十分理解してから始めるといいでしょう。
+
+
+Where to from here
+これからについて
+
+I have a lot I’d like to explore and write about, but the next few topics will be based on the things I already partly covered in the talk that this is based on.
+書きたいことや調査したいことはたくさんあるが、次からのいくつかの記事ではすでに講演で話したことをもとにして書きます。
+The current version of our interpreter is manually handing both environment and state. We can clean this up by using comonad transformers. 
+現在のインタープリターは手動で環境と状態を操作してます。これをコモナドトランスフォーマーを使ってきれいにしていきます。
+This turns out to be pretty similar to working with monad transformers, down to the fact that we can use the transformers in either transformers or mtl style.
+モナドトランスフォーマーと働きがかなり似ていることに気づくでしょう。そして、transformers と mtl 両方のスタイルのトランスフォーマーを使います。
+We can break the DSL down into independent parts using coproducts, as covered in Data types a la carte. 
+DSLをcoproductsを使って独立したパーツに分解することができるということを、Data types a la carteで述べました。
+In addition to this, we can factor out the independent parts of the interpreter using products.
+さらにproductsを使うことでインタープリターの独立したパーツをくくりだすことができます。
+We can bring some other effects into the mix. This will allows us to interact with our interpreter from the console, and to connect our DSL to our interpreter over the network.
+混合物に別の作用をもたらすことができます。コンソールからインタープリターを使って解釈することができたり、ねーとワークを通してDSLとインタープリターが接続出来たりします。
+There’s a lot more in the queue, but comonad transformers, coproducts/products, and working with additional effects should make a pretty good start.
+キューにはもっとたくさんあります。しかし、コモナドトランスフォーマー、coproducts/products、作用の追加から始めていきます。
+
+
+

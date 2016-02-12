@@ -1,0 +1,1021 @@
+./misc-example/kind5.hs:{-# LANGUAGE FlexibleContexts #-}
+./misc-example/generics2.hs:import Control.Monad.Identity
+./misc-example/generics2.hs:import Control.Applicative
+./misc-example/kind8.hs:{-# LANGUAGE FlexibleContexts #-}
+./misc-example/kind9.hs:{-# LANGUAGE FlexibleContexts #-}
+./misc-example/algebra2.hs:import Control.Applicative
+./misc-example/misc.hs:import Control.Monad.Writer
+./misc-example/algebra4.hs:{-# LANGUAGE FlexibleContexts #-}
+./misc-example/algebra4.hs:import Control.Monad.Free
+./misc-example/algebra4.hs:import Control.Comonad
+./misc-example/algebra4.hs:import Control.Comonad.Cofree
+./misc-example/kind3.hs:{-# LANGUAGE FlexibleContexts #-}
+./misc-example/misc-example3.hs:import Control.Applicative ((<$>))
+./misc-example/misc-example3.hs:import Control.Arrow ((***))
+./misc-example/misc-example3.hs:import Control.Monad.Trans.Class(MonadTrans(..))
+./misc-example/misc-example3.hs:class Contravariant f where
+./misc-example/misc-example3.hs:instance Contravariant Predicate where
+./misc-example/misc-example3.hs:instance Contravariant (Op a) where
+./misc-example/misc-example3.hs:instance Contravariant (Const a) where
+./misc-example/misc-example3.hs:instance Contravariant Comparison where
+./misc-example/generics6.hs:{-# LANGUAGE FlexibleContexts #-}
+./misc-example/dist/dist-sandbox-9c4a7b7b/build/autogen/Paths_misc_example.hs:import qualified Control.Exception as Exception
+./misc-example/misc-example1.hs:import Control.Applicative
+./monoid-example/monoid-example1.hs:import Control.Applicative
+./real-wold/Find/src/ControlledVisit.hs:module ControlledVisit (
+./real-wold/Find/src/ControlledVisit.hs:      , traverse, getUsefulContents
+./real-wold/Find/src/ControlledVisit.hs:import Control.Exception (handle, IOException)
+./real-wold/Find/src/ControlledVisit.hs:import Control.Monad (liftM, forM)
+./real-wold/Find/src/ControlledVisit.hs:import System.Directory (Permissions(..), getDirectoryContents, getModificationTime, getPermissions)
+./real-wold/Find/src/ControlledVisit.hs:    names <- getUsefulContents path 
+./real-wold/Find/src/ControlledVisit.hs:getUsefulContents :: FilePath -> IO [String]
+./real-wold/Find/src/ControlledVisit.hs:getUsefulContents path = do
+./real-wold/Find/src/ControlledVisit.hs:    names <- getDirectoryContents path
+./real-wold/Find/src/RecursiveContents.hs:module RecursiveContents
+./real-wold/Find/src/RecursiveContents.hs:      getRecursiveContents
+./real-wold/Find/src/RecursiveContents.hs:import Control.Monad (forM)
+./real-wold/Find/src/RecursiveContents.hs:import System.Directory(doesDirectoryExist, getDirectoryContents)
+./real-wold/Find/src/RecursiveContents.hs:getRecursiveContents :: FilePath -> IO [FilePath]
+./real-wold/Find/src/RecursiveContents.hs:getRecursiveContents topdir = do
+./real-wold/Find/src/RecursiveContents.hs:  names <- getDirectoryContents topdir
+./real-wold/Find/src/RecursiveContents.hs:      then getRecursiveContents path
+./real-wold/Find/src/BetterPredicate.hs:import Control.Exception (bracket, handle, IOException)
+./real-wold/Find/src/BetterPredicate.hs:import Control.Monad (filterM)
+./real-wold/Find/src/BetterPredicate.hs:import RecursiveContents (getRecursiveContents)
+./real-wold/Find/src/BetterPredicate.hs:betterFind p path = getRecursiveContents path >>= filterM check
+./real-wold/Find/src/SimpleFinder.hs:import RecursiveContents (getRecursiveContents)
+./real-wold/Find/src/SimpleFinder.hs:  names <- getRecursiveContents path
+./real-wold/Find/src/FoldDir.hs:import Control.Monad (forM, liftM)
+./real-wold/Find/src/FoldDir.hs:import System.Directory (Permissions(..), getDirectoryContents)
+./real-wold/Find/src/FoldDir.hs:                    | Continue { unwrap :: seed}
+./real-wold/Find/src/FoldDir.hs:    fold seed subpath = getUsefulContents subpath >>= walk seed
+./real-wold/Find/src/FoldDir.hs:    fold seed subpath = getUsefulContents subpath >>= walk subpath seed
+./real-wold/Find/src/FoldDir.hs:        Continue seed'
+./real-wold/Find/src/FoldDir.hs:    walk _ seed _ = return (Continue seed)
+./real-wold/Find/src/FoldDir.hs:    = Continue (path:paths)
+./real-wold/Find/src/FoldDir.hs:    = Continue paths
+./real-wold/Jsonclass/src/JsonClass.hs:import Control.Arrow (second)
+./real-wold/Sample/src/Countword.hs:main = do cs <- getContents
+./real-wold/Sample/src/Tail2.hs:main = do cs <- getContents
+./real-wold/Sample/src/Sort.hs:main = putStr . unlines .sort .lines =<< getContents
+./real-wold/Sample/src/Expand.hs:main = do cs <- getContents
+./real-wold/Sample/src/Countline.hs:main = do cs <- getContents
+./real-wold/Sample/src/Head.hs:main = do cs <- getContents
+./real-wold/Sample/src/Countbyte.hs:main = do cs <- getContents
+./real-wold/Sample/src/Tail3.hs:main = getContents >>= putStr . lastNLines 10
+./real-wold/Sample/src/Fold.hs:main = do cs <- getContents
+./real-wold/Sample/src/Swapa.hs:main = do cs <- getContents
+./real-wold/Sample/src/Fgrep.hs:          cs <- getContents
+./real-wold/Sample/src/Head2.hs:main = getContents >>= putStr . firstNLines  10
+./real-wold/Sample/src/Cat.hs:main = do cs <- getContents
+./real-wold/Sample/src/Expand2.hs:main = getContents >>= putStr . expand
+./real-wold/Sample/src/Catn.hs:main = do cs <- getContents
+./real-wold/Sample/src/Tail.hs:main = do cs <- getContents
+./real-wold/Sample/src/Uniq.hs:main = putStr . unlines .map (head) . group .lines =<< getContents
+./real-wold/Sample/src/Fgrep2.hs:          cs <- getContents
+./real-wold/Glob/src/Glob.hs:                           getCurrentDirectory, getDirecotryContents)
+./real-wold/Glob/src/Glob.hs:import Control.OldException (handle)
+./real-wold/Glob/src/Glob.hs:import Control.Monad(forM)
+./real-wold/Glob/src/Glob.hs:    names <- getDirectoryContents dirName'
+./real-wold/Binary/src/PNM.hs:import Control.Applicative
+./real-wold/Binary/src/Barcode.hs:import Control.Applicative ((<$>))
+./control-monad-loop-example/lift-continue.hs:import Control.Monad
+./control-monad-loop-example/lift-continue.hs:import Control.Monad.Base
+./control-monad-loop-example/lift-continue.hs:import Control.Monad.Trans.Class
+./control-monad-loop-example/lift-continue.hs:import Control.Monad.Trans.Loop
+./control-monad-loop-example/recycled-numbers.hs:import Control.Monad.Trans.Loop
+./control-monad-loop-example/recycled-numbers.hs:import Control.Applicative          ((<$>))
+./control-monad-loop-example/recycled-numbers.hs:import Control.Monad
+./control-monad-loop-example/recycled-numbers.hs:import Control.Monad.ST
+./control-monad-loop-example/recycled-numbers.hs:import Control.Monad.Trans.Class
+./control-monad-loop-example/liftLocal.hs:import Control.Monad.Trans.Loop
+./control-monad-loop-example/liftLocal.hs:import Control.Exception
+./control-monad-loop-example/liftLocal.hs:import Control.Monad.Reader
+./control-monad-loop-example/liftLocal.hs:import Control.Monad.Writer
+./control-monad-loop-example/control-monad-loop-example1.hs:import Control.Monad.Trans.Loop
+./control-monad-loop-example/control-monad-loop-example1.hs:import Control.Monad
+./control-monad-loop-example/control-monad-loop-example1.hs:import Control.Monad.IO.Class
+./control-monad-loop-example/leak.hs:import Control.Monad
+./control-monad-loop-example/leak.hs:import Control.Monad.Trans.Class
+./control-monad-loop-example/leak.hs:import Control.Monad.Trans.Loop
+./control-monad-loop-example/leak.hs:import Control.Monad.Trans.State.Strict
+./control-monad-loop-example/dist/dist-sandbox-93530eec/build/autogen/Paths_control_monad_loop_example.hs:import qualified Control.Exception as Exception
+./extentions-example/extentions-example9.hs:{-# LANGUAGE FlexibleContexts #-}
+./extentions-example/extentions-example9.hs:import Control.Concurrent.STM
+./extentions-example/extentions-example9.hs:import Control.Concurrent.MVar
+./extentions-example/extentions-example6.hs:import Control.Monad
+./extentions-example/pokemon/pokemon3.hs:{-# LANGUAGE FlexibleContexts      #-}
+./extentions-example/pokemon/pokemon4.hs:{-# LANGUAGE FlexibleContexts      #-}
+./extentions-example/extentions-exampleJ.hs:import Control.Applicative
+./extentions-example/extentions-exampleJ.hs:import Control.Monad.State
+./extentions-example/extentions-exampleJ.hs:import Control.Monad.Free
+./extentions-example/extentions-exampleA.hs:{-# LANGUAGE FlexibleContexts      #-}
+./extentions-example/extentions-exampleH.hs:{-# LANGUAGE FlexibleContexts       #-}
+./extentions-example/extentions-exampleM.hs:import Control.Applicative
+./extentions-example/dist/dist-sandbox-2381cc45/build/autogen/Paths_extentions_example.hs:import qualified Control.Exception as Exception
+./shell-conduit-example/shell-conduit-example.hs:import Control.Monad.IO.Class
+./shell-conduit-example/shell-conduit/examples/Clone.hs:import Control.Monad.IO.Class
+./shell-conduit-example/shell-conduit/examples/Failure.hs:import Control.Applicative
+./shell-conduit-example/shell-conduit/examples/Failure.hs:import Control.Monad.Fix
+./shell-conduit-example/shell-conduit/src/Data/Conduit/Shell/Process.hs:import           Control.Applicative
+./shell-conduit-example/shell-conduit/src/Data/Conduit/Shell/Process.hs:import           Control.Concurrent.Async
+./shell-conduit-example/shell-conduit/src/Data/Conduit/Shell/Process.hs:import           Control.Exception
+./shell-conduit-example/shell-conduit/src/Data/Conduit/Shell/Process.hs:import           Control.Monad
+./shell-conduit-example/shell-conduit/src/Data/Conduit/Shell/Process.hs:import           Control.Monad.IO.Class
+./shell-conduit-example/shell-conduit/src/Data/Conduit/Shell/Process.hs:import           Control.Monad.Trans.Resource
+./shell-conduit-example/shell-conduit/src/Data/Conduit/Shell/PATH.hs:import           Control.Monad
+./shell-conduit-example/shell-conduit/src/Data/Conduit/Shell/PATH.hs:import           Control.Monad.IO.Class
+./shell-conduit-example/shell-conduit/src/Data/Conduit/Shell/Types.hs:{-# LANGUAGE FlexibleContexts #-}
+./shell-conduit-example/shell-conduit/src/Data/Conduit/Shell/Types.hs:import Control.Applicative
+./shell-conduit-example/shell-conduit/src/Data/Conduit/Shell/Types.hs:import Control.Exception
+./shell-conduit-example/shell-conduit/src/Data/Conduit/Shell/Types.hs:import Control.Monad
+./shell-conduit-example/shell-conduit/src/Data/Conduit/Shell/Types.hs:import Control.Monad.Base
+./shell-conduit-example/shell-conduit/src/Data/Conduit/Shell/Types.hs:import Control.Monad.IO.Class
+./shell-conduit-example/shell-conduit/src/Data/Conduit/Shell/Types.hs:import Control.Monad.Trans.Class
+./shell-conduit-example/shell-conduit/src/Data/Conduit/Shell/Types.hs:import Control.Monad.Trans.Control
+./shell-conduit-example/shell-conduit/src/Data/Conduit/Shell/Types.hs:import Control.Monad.Trans.Resource
+./shell-conduit-example/shell-conduit/src/Data/Conduit/Shell/Types.hs:instance (MonadThrow m,MonadIO m,MonadBaseControl IO m) => MonadBaseControl IO (ShellT m) where
+./shell-conduit-example/shell-conduit/src/Data/Conduit/Shell/Types.hs:instance (MonadBaseControl IO (ShellT m),Applicative m,MonadThrow m) => Alternative (ConduitM i o (ShellT m)) where
+./shell-conduit-example/shell-conduit/src/Data/Conduit/Shell/TH.hs:import Control.Arrow
+./shell-conduit-example/shell-conduit/src/Data/Conduit/Shell/TH.hs:import Control.Monad
+./shell-conduit-example/shell-conduit/src/Data/Conduit/Shell/TH.hs:                         then do contents <- getDirectoryContents dir
+./shell-conduit-example/shell-conduit/dist/dist-sandbox-95147e11/build/autogen/Paths_shell_conduit.hs:import qualified Control.Exception as Exception
+./shell-conduit-example/dist/dist-sandbox-95147e11/build/autogen/Paths_shell_conduit_example.hs:import qualified Control.Exception as Exception
+./continuation-example/continuation-example2.hs: 通常のmonadicなコードでO(n^2)かかる計算を手でCPS変換あるいはContTモナド
+./continuation-example/continuation-example2.hs:import Control.Monad.Trans.Cont (ContT, runContT)
+./continuation-example/continuation-example2.hs:import Control.Monad.Trans (lift)
+./continuation-example/continuation-example2.hs:-- 同じことをContモナドで
+./continuation-example/continuation-example2.hs:type TreeCont a = forall r. ContT r Tree a
+./continuation-example/continuation-example2.hs:leafCont :: a -> TreeCont a
+./continuation-example/continuation-example2.hs:leafCont = lift . return
+./continuation-example/continuation-example2.hs:nodeCont :: TreeCont a -> TreeCont a -> TreeCont a
+./continuation-example/continuation-example2.hs:nodeCont l r = lift $ Node (runContT l Leaf) (runContT r Leaf)
+./continuation-example/continuation-example2.hs:-- gizgaz . fullTreeContはO(n)
+./continuation-example/continuation-example2.hs:fullTreeCont :: Int -> Tree Int
+./continuation-example/continuation-example2.hs:fullTreeCont = flip runContT return . fullTree'
+./continuation-example/continuation-example2.hs:  where fullTree' :: Int -> TreeCont Int
+./continuation-example/continuation-example2.hs:        fullTree' 1           = leafCont 1
+./continuation-example/continuation-example2.hs:          nodeCont (leafCont (n - i)) (leafCont (i + 1))
+./continuation-example/continuation-example2.hs:                   , bgroup "ContT"  [ bench (show n) $ whnf (zigzag . fullTreeCont) n | n <- ns]
+./continuation-example/continuation-example1.hs:import Control.Monad.Cont
+./continuation-example/continuation-example1.hs:calc1 :: Int -> Cont r Int
+./continuation-example/continuation-example1.hs:calc2 :: Int -> Cont r Int
+./continuation-example/continuation-example1.hs:calc3 :: Int -> Cont r Int
+./continuation-example/continuation-example1.hs:calcAll :: Int -> Cont r Int
+./continuation-example/continuation-example1.hs:    runCont (calc1 2) print
+./continuation-example/continuation-example1.hs:    runCont (calcAll 2) print
+./continuation-example/continuation-example1.hs:    -- runCont (calcAll 2) (\x -> print x)
+./continuation-example/continuation-example1.hs:    print $ runCont (calcAll 2) (\x -> x - 9)
+./continuation-example/continuation-example1.hs:sample2 :: Int -> Cont r Int
+./continuation-example/continuation-example1.hs:    runCont (sample2 1) print -- (1)
+./continuation-example/continuation-example1.hs:    runCont (sample2 2) print -- (2)
+./continuation-example/continuation-example1.hs:    runCont (sample2 3) print -- (1)
+./continuation-example/continuation-example1.hs:    runCont (sample2 4) print -- (2)
+./continuation-example/continuation-example1.hs:sample3 :: Int -> Cont r Int
+./continuation-example/continuation-example1.hs:    runCont (sample3 1) print -- (1)
+./continuation-example/continuation-example1.hs:    runCont (sample3 2) print -- (2) (5)
+./continuation-example/continuation-example1.hs:    runCont (sample3 3) print -- (1)
+./continuation-example/continuation-example1.hs:    runCont (sample3 4) print -- (3)
+./continuation-example/continuation-example1.hs:    runCont (sample3 5) print -- (1)
+./continuation-example/continuation-example1.hs:    runCont (sample3 6) print -- (4) (5)
+./continuation-example/continuation-example1.hs:    runCont (return 4 >>= sample3) print
+./continuation-example/continuation-example1.hs:    runCont (return 4 >>= sample3 >>= sample3) print
+./continuation-example/continuation-example1.hs:    runCont (return 4 >>= sample3 >>= sample3 >>= sample3) print
+./continuation-example/dist/dist-sandbox-a6e6fd35/build/autogen/Paths_continuation_example.hs:import qualified Control.Exception as Exception
+./objective-example/objective-example2.hs:import Control.Object
+./objective-example/objective-example2.hs:import Control.Monad.Trans.State.Strict
+./objective-example/objective-example2.hs:import Control.Monad.IO.Class
+./objective-example/objective-example2.hs:import Control.Monad.Skeleton
+./objective-example/objective-example1.hs:import Control.Object
+./objective-example/objective-example1.hs:import Control.Monad.Trans.State.Strict
+./objective-example/objective-example1.hs:import Control.Monad.IO.Class
+./objective-example/objective-example1.hs:(.-) :: (MonadIO m, Control.Monad.Catch.MonadMask m) => Instance f m -> f a -> m a
+./objective-example/dist/dist-sandbox-4494cf1f/build/autogen/Paths_objective_example.hs:import qualified Control.Exception as Exception
+./operational-example/list1.hs:import Control.Monad
+./operational-example/list1.hs:import Control.Monad.Operational
+./operational-example/list3.hs:import Control.Monad
+./operational-example/list3.hs:import Control.Monad.Operational
+./operational-example/list3.hs:import Control.Applicative
+./operational-example/list3.hs:import Control.Monad.Trans
+./operational-example/ListT.hs:    Control.Monad.Operational
+./operational-example/ListT.hs:import Control.Monad
+./operational-example/ListT.hs:import Control.Monad.Operational
+./operational-example/ListT.hs:import Control.Monad.Trans
+./operational-example/ListT.hs:import Control.Applicative
+./operational-example/operational-example4.hs:import Control.Monad.Free
+./operational-example/WebSessionState.hs:    Control.Monad.Operational
+./operational-example/WebSessionState.hs:import Control.Monad
+./operational-example/WebSessionState.hs:import Control.Monad.Operational
+./operational-example/WebSessionState.hs:import Control.Monad.Trans hiding (lift)
+./operational-example/TicTacToe.hs:    Control.Monad.Operational
+./operational-example/TicTacToe.hs:import Control.Monad
+./operational-example/TicTacToe.hs:import Control.Monad.Operational
+./operational-example/TicTacToe.hs:import Control.Monad.State
+./operational-example/State.hs:    Control.Monad.Operational
+./operational-example/State.hs:import Control.Monad
+./operational-example/State.hs:import Control.Monad.Operational
+./operational-example/State.hs:import Control.Monad.Trans
+./operational-example/operational-example3.hs:import Control.Applicative
+./operational-example/operational-example3.hs:import Control.Monad
+./operational-example/operational-example3.hs:import Control.Monad.Trans
+./operational-example/operational-example3.hs:import Control.Monad.Operational
+./operational-example/operational-example2.hs:import Control.Applicative
+./operational-example/operational-example2.hs:import Control.Monad.Trans
+./operational-example/operational-example2.hs:import Control.Monad.Operational
+./operational-example/BreadthFirstParsing.hs:    Control.Monad.Operational
+./operational-example/BreadthFirstParsing.hs:import Control.Monad
+./operational-example/BreadthFirstParsing.hs:import Control.Monad.Operational
+./operational-example/BreadthFirstParsing.hs:import Control.Applicative
+./operational-example/operational-example1.hs:import Control.Monad.Operational
+./operational-example/list2.hs:import Control.Monad
+./operational-example/list2.hs:import Control.Monad.Operational
+./operational-example/LogicT.hs:    Control.Monad.Operational
+./operational-example/LogicT.hs:import Control.Monad
+./operational-example/LogicT.hs:import Control.Monad.Operational
+./operational-example/LogicT.hs:import Control.Monad.Trans
+./operational-example/dist/dist-sandbox-e4eb70c0/build/autogen/Paths_operational_example.hs:import qualified Control.Exception as Exception
+./operational-example/PoorMansConcurrency.hs:    Control.Monad.Operational
+./operational-example/PoorMansConcurrency.hs:import Control.Monad
+./operational-example/PoorMansConcurrency.hs:import Control.Monad.Operational
+./operational-example/PoorMansConcurrency.hs:import Control.Monad.Trans hiding (lift)
+./state-example/Tree.hs:import Control.Monad
+./state-example/state-example.hs:import Control.Monad.State
+./state-example/state-example.hs:import Control.Applicative
+./state-example/MyMaybeT.hs:import Control.Monad
+./state-example/MyMaybeT.hs:import Control.Monad.Trans
+./state-example/trans.hs:import Control.Monad.Identity
+./state-example/trans.hs:import Control.Monad.Reader
+./state-example/trans.hs:import Control.Monad.State
+./state-example/trans.hs:import Control.Applicative
+./state-example/trans.hs:printReaderContent :: ReaderT String IO ()
+./state-example/trans.hs:printReaderContent = do
+./state-example/trans.hs:    liftIO $ putStrLn ("The Reader Content: " ++ content)
+./state-example/trans.hs:  runReaderT printReaderContent "Some Content"
+./state-example/Transformers.hs:import Control.Monad.Identity
+./state-example/Transformers.hs:import Control.Monad.Trans.Except 
+./state-example/Transformers.hs:import Control.Monad.Reader
+./state-example/Transformers.hs:import Control.Monad.State
+./state-example/Transformers.hs:import Control.Monad.Writer
+./lens-example/lens-example5.hs:import Control.Lens
+./lens-example/lens-example5.hs:import Control.Monad.State
+./lens-example/lens-example3.hs:import Control.Lens
+./lens-example/lens-example3.hs:type Getter    s   a   = forall f. (Contravariant f, Functor f) => 
+./lens-example/lens-example3.hs:type Fold      s   a   = forall f. (Contravariant f, Applicative f) => 
+./lens-example/lens-example3.hs:re :: Contravariant f => AReview t b -> LensLike' f b t
+./lens-example/lens-example4.hs:import Control.Lens
+./lens-example/lens-example4.hs:       -- Contravariant f, Functor f => LensLike' f ReadOnly String
+./lens-example/lens-example4.hs:    type NameConstraint ReadOnly f = (Contravariant f, Functor f)
+./lens-example/lens-example6.hs:import Control.Monad.State
+./lens-example/lens-example6.hs:import Control.Lens
+./lens-example/lens-example2.hs:import Control.Lens
+./lens-example/lens-example2.hs:import Control.Lens.Action
+./lens-example/lens-example2.hs:import Control.Monad.Trans
+./lens-example/lens-example2.hs:import Control.Monad.Trans.State
+./lens-example/lens-example2.hs:import Control.Lens.Extras (is)
+./lens-example/lens-example2.hs:import Control.DeepSeq (NFData (..), force)
+./lens-example/lens-example2.hs:import Control.Exception (evaluate)
+./lens-example/dist/build/autogen/Paths_lens_example.hs:import qualified Control.Exception as Exception
+./lens-example/dist/dist-sandbox-7af142db/build/autogen/Paths_lens_example.hs:import qualified Control.Exception as Exception
+./lens-example/lens-example1.hs:import Control.Lens
+./lens-example/lens-example1.hs:import Control.Monad.Trans
+./lens-example/lens-example1.hs:import Control.Monad.Trans.State
+./lens-example/lens-example7.hs:{-# LANGUAGE FlexibleContexts #-}
+./lens-example/lens-example7.hs:import Control.Lens
+./lens-example/lens-example7.hs:import Control.Applicative
+./lens-example/lens-example7.hs:import Control.Monad.State
+./lens-example/lens-example7.hs:import Control.Monad.IO.Class
+./lens-example/lens-example7.hs:import Control.Lens.Internal.Zoom 
+./lens-example/lens-example7.hs:  -- LensLike' (Control.Lens.Internal.Zoom.Zoomed (StateT c m) a) s c ->
+./mmorph-example/mmorph-example1.hs:import Control.Monad
+./mmorph-example/mmorph-example1.hs:import Control.Monad.Trans.Class
+./mmorph-example/mmorph-example1.hs:import Control.Monad.Trans.Writer
+./mmorph-example/mmorph-example1.hs:import Control.Monad.Trans.State
+./mmorph-example/mmorph-example1.hs:import Control.Monad.Trans.Except
+./mmorph-example/mmorph-example1.hs:import Control.Monad.Morph
+./mmorph-example/mmorph-example1.hs:import Control.Exception
+./mmorph-example/mmorph-example2.hs:{-# LANGUAGE FlexibleContexts #-}
+./mmorph-example/mmorph-example2.hs:import Control.Applicative
+./mmorph-example/mmorph-example2.hs:import Control.Monad.Except
+./mmorph-example/mmorph-example2.hs:import Control.Monad.Writer
+./mmorph-example/mmorph-example2.hs:import Control.Monad.Reader
+./mmorph-example/mmorph-example2.hs:import Control.Monad.Trans.State
+./mmorph-example/mmorph-example2.hs:import Control.Monad.Trans.Except
+./mmorph-example/mmorph-example2.hs:import Control.Monad.Morph
+./mmorph-example/dist/dist-sandbox-1d06f46f/build/autogen/Paths_mmorph_example.hs:import qualified Control.Exception as Exception
+./applicative-example/applicative-example2.hs:import Control.Monad(Functor(..))
+./applicative-example/applicative-example2.hs:import Control.Applicative
+./applicative-example/applicative-example1.hs:import Control.Applicative
+./applicative-example/applicative-example1.hs:import Control.Monad
+./applicative-example/applicative-example4.hs:import Control.Monad
+./applicative-example/applicative-example4.hs:import Control.Applicative
+./applicative-example/dist/dist-sandbox-cc382432/build/autogen/Paths_applicative_example.hs:import qualified Control.Exception as Exception
+./applicative-example/applicative-example3.hs:import Control.Applicative
+./applicative-example/applicative-example3.hs:import Control.Monad.Identity
+./monadfix-example/monadfix-example1.hs:import Control.Monad.Fix
+./monadfix-example/monadfix-example2.hs:import Control.Monad.Fix
+./monadfix-example/recursivedo.hs:import Control.Monad.Fix
+./monadfix-example/monadfix-example3.hs:import Control.Monad (when)
+./monadfix-example/dist/dist-sandbox-42e3fc69/build/autogen/Paths_monadfix_example.hs:import qualified Control.Exception as Exception
+./react.hs/src/React.hs:import Control.Applicative
+./react.hs/src/React.hs:import Control.Monad.State
+./react.hs/src/React.hs:import Control.Monad.Writer hiding (listen)
+./react.hs/test.hs:import Control.Applicative
+./react.hs/test.hs:import Control.Concurrent
+./react.hs/test.hs:import Control.Monad.Trans
+./react.hs/test.hs:import Control.Monad
+./react.hs/dist/dist-sandbox-5401ee1c/build/autogen/Paths_react_hs.hs:import qualified Control.Exception as Exception
+./lens-tutorial/lens-example5.hs:import Control.Applicative (Applicative, pure, (<$>), (<*>))
+./lens-tutorial/lens-example5.hs:view (traverse.posts) :: (Control.Monad.Reader.Class.MonadReader (t User) m, Traversable t) => m [Post]
+./lens-tutorial/lens-example5.hs:      traverse.posts  :: (Traversable t, Control.Applicative.Applicative f)                 => ([Post] -> f [Post]) -> t User -> f (t User)
+./lens-tutorial/lens-example5.hs:view                  :: Control.Monad.Reader.Class.MonadReader s m                         => Getting a s a -> m a   
+./lens-tutorial/lens-example6.hs:import Control.Lens
+./lens-tutorial/traversable-example.hs:import Control.Applicative ((<*>), pure)
+./lens-tutorial/traversable-example.hs:ApplicativeはControl.Applicative
+./lens-tutorial/traversable-example.hs:ConstはControl.Applicativeで定義されている
+./category-example/category-example1.hs:import Control.Category hiding (id, (.)) -- Prelude との衝突防止
+./category-example/category-example1.hs:import qualified Control.Category as Cat
+./category-example/category-example1.hs:import Control.Monad
+./category-example/category-example1.hs:import Control.Arrow
+./tsuru/Argx.hs:import Control.Monad.Trans.Except 
+./tsuru/Argx.hs:import Control.Monad.Reader
+./tsuru/Argx.hs:import Control.Monad.State
+./tsuru/Argx.hs:import Control.Monad.Writer
+./tsuru/Main1.hs:import Control.Monad.Identity
+./tsuru/Main1.hs:import Control.Monad.Trans.Except 
+./tsuru/Main1.hs:import Control.Monad.Reader
+./tsuru/Main1.hs:import Control.Monad.State
+./tsuru/Main1.hs:import Control.Monad.Writer
+./tsuru/Market.hs:import Control.Monad.State
+./tsuru/Market.hs:import Control.Applicative
+./tsuru/dist/dist-sandbox-28959347/build/autogen/Paths_tsuru.hs:import qualified Control.Exception as Exception
+./monad-memo-example/MaybeLike.hs:{-# LANGUAGE FlexibleInstances, FlexibleContexts,
+./monad-memo-example/MaybeLike.hs:import Control.Monad
+./monad-memo-example/MaybeLike.hs:import Control.Monad.ST
+./monad-memo-example/MaybeLike.hs:import Control.Monad.Memo.Class
+./monad-memo-example/MaybeLike.hs:import Control.Monad.Memo.Array.Instances
+./monad-memo-example/monad-memo-example3.hs:import Control.Applicative
+./monad-memo-example/monad-memo-example3.hs:import Control.Monad.ST
+./monad-memo-example/monad-memo-example3.hs:import Control.Monad.Memo.Vector.Expandable as EV
+./monad-memo-example/monad-memo-example3.hs:import Control.Monad.Memo
+./monad-memo-example/monad-memo-example2.hs:{-# LANGUAGE FlexibleContexts #-}
+./monad-memo-example/monad-memo-example2.hs:import Control.Monad.Memo
+./monad-memo-example/monad-memo-example2.hs:import Control.Monad.Cont
+./monad-memo-example/monad-memo-example2.hs:import Control.Monad.Reader
+./monad-memo-example/monad-memo-example2.hs:import Control.Monad.Writer
+./monad-memo-example/monad-memo-example2.hs:import Control.Monad.ST
+./monad-memo-example/monad-memo-example2.hs:fibmc :: (Eq k, Num k, Show k, Num n, MonadCont m, MonadMemo k n m) => k -> m n
+./monad-memo-example/monad-memo-example2.hs:evalFibmc = startEvalMemo . (`runContT`return) . fibmc
+./monad-memo-example/monad-memo-example2.hs:--          startEvalMemo $ runContT (fibmc n) return
+./monad-memo-example/monad-memo-example2.hs:runFibmc = startRunMemo . (`runContT`return) . fibmc
+./monad-memo-example/monad-memo-example2.hs:evalFibmcIO n = (`evalArrayMemo`(0,n)) . (`runContT`return) . fibmc $ n
+./monad-memo-example/monad-memo-example2.hs:--              evalArrayMemo (runContT (fibmc n) return) (0,n)
+./monad-memo-example/monad-memo-example2.hs:evalFibmcST n = runST $ (`evalArrayMemo`(0,n)) $ (`runContT`return) $ fibmc n
+./monad-memo-example/MapLike.hs:{-# LANGUAGE FlexibleInstances, FlexibleContexts,
+./monad-memo-example/MapLike.hs:import Control.Monad.Memo.Class
+./monad-memo-example/MapLike.hs:import Control.Monad.Trans.Memo.State
+./monad-memo-example/Cache.hs:import Control.Monad.ST
+./monad-memo-example/Cache.hs:import Control.Monad.Memo
+./monad-memo-example/Cache.hs:import Control.Monad.Trans.Memo.ReaderCache
+./monad-memo-example/Cache.hs:newtype Container s k v = Container { toTable :: H.HashTable s k v }
+./monad-memo-example/Cache.hs:type Cache s k v = ReaderCache (Container s k v)
+./monad-memo-example/Cache.hs:   evalReaderCache (fibm n) (Container c)
+./monad-memo-example/monad-memo-example4.hs:{-# LANGUAGE FlexibleContexts #-}
+./monad-memo-example/monad-memo-example4.hs:import Control.Monad.ST
+./monad-memo-example/monad-memo-example4.hs:import Control.Monad.List
+./monad-memo-example/monad-memo-example4.hs:import Control.Applicative
+./monad-memo-example/monad-memo-example4.hs:import Control.Monad.Memo
+./monad-memo-example/Array.hs:  FlexibleContexts, UndecidableInstances, TypeSynonymInstances #-}
+./monad-memo-example/Array.hs:import Control.Monad.ST
+./monad-memo-example/Array.hs:import Control.Monad.Writer
+./monad-memo-example/Array.hs:import Control.Monad.Memo.Class
+./monad-memo-example/Array.hs:import Control.Monad.Memo.Array
+./monad-memo-example/Vector.hs:import Control.Monad
+./monad-memo-example/Vector.hs:import Control.Monad.ST
+./monad-memo-example/Vector.hs:import Control.Monad.Primitive
+./monad-memo-example/Vector.hs:import Control.Monad.Memo.Class
+./monad-memo-example/Vector.hs:import Control.Monad.Trans.Memo.ReaderCache
+./monad-memo-example/Vector.hs:import Control.Monad.Memo.Vector
+./monad-memo-example/Vector.hs:New custom types, not handled by "Control.Monad.Trans.Memo.Vector.Instances", 
+./monad-memo-example/Vector.hs:-- from unboxed part of "Control.Monad.Trans.Memo.Vector" module 
+./monad-memo-example/dist/dist-sandbox-3cae5a2a/build/autogen/Paths_monad_memo_example.hs:import qualified Control.Exception as Exception
+./monad-memo-example/monad-memo-example1.hs:{-# LANGUAGE FlexibleContexts    #-}
+./monad-memo-example/monad-memo-example1.hs:import Control.Monad.Memo
+./monad-memo-example/monad-memo-example1.hs:import Control.Applicative
+./typeable-and-data/typeable-and-data1.hs:import Control.Monad
+./typeable-and-data/typeable-and-data1.hs:import Control.Monad.State
+./parconc-examples/par/repa-example/rotateimage.hs:{-# LANGUAGE FlexibleContexts, BangPatterns #-}
+./parconc-examples/par/repa-example/dist/build/autogen/Paths_repa_example.hs:import qualified Control.Exception as Exception
+./parconc-examples/par/strat-example/rsa2.hs:import Control.Parallel.Strategies
+./parconc-examples/par/strat-example/rsa2.hs:            "-" -> B.getContents
+./parconc-examples/par/strat-example/sudoku5.hs:import Control.Exception
+./parconc-examples/par/strat-example/sudoku5.hs:import Control.Parallel.Strategies
+./parconc-examples/par/strat-example/strat3.hs:import Control.Parallel
+./parconc-examples/par/strat-example/strat3.hs:import Control.Parallel.Strategies (rpar, rseq, rdeepseq, Strategy, using, rparWith)
+./parconc-examples/par/strat-example/strat3.hs:import Control.Exception
+./parconc-examples/par/strat-example/strat2.hs:import Control.Parallel
+./parconc-examples/par/strat-example/strat2.hs:import Control.Parallel.Strategies (rpar, Strategy, using)
+./parconc-examples/par/strat-example/parlist.hs:import Control.Parallel.Strategies hiding (parList, evalList)
+./parconc-examples/par/strat-example/ByteStringCompat.hs:import Control.DeepSeq
+./parconc-examples/par/strat-example/Sudoku.hs:import Control.Monad
+./parconc-examples/par/strat-example/rsa.hs:            "-" -> B.getContents
+./parconc-examples/par/strat-example/strat.hs:import Control.Parallel
+./parconc-examples/par/strat-example/strat.hs:import Control.Parallel.Strategies (rpar, Strategy, using)
+./parconc-examples/par/strat-example/kmeans/kmeans.hs:--   [ kmeans_strat ]  a parallel version using Control.Parallel.Strategies
+./parconc-examples/par/strat-example/kmeans/kmeans.hs:--   [ kmeans_par   ]  a parallel version using Control.Monad.Par
+./parconc-examples/par/strat-example/kmeans/kmeans.hs:import Control.Parallel.Strategies as Strategies
+./parconc-examples/par/strat-example/kmeans/kmeans.hs:import Control.Monad.Par as Par
+./parconc-examples/par/strat-example/kmeans/kmeans.hs:import Control.DeepSeq
+./parconc-examples/par/strat-example/kmeans/kmeans.hs:import Control.Exception
+./parconc-examples/par/strat-example/kmeans/kmeans.hs:import Control.Concurrent
+./parconc-examples/par/strat-example/kmeans/kmeans.hs:import Control.Monad.ST
+./parconc-examples/par/strat-example/kmeans/KMeansCore.hs:import Control.DeepSeq
+./parconc-examples/par/strat-example/kmeans/GenSamples.hs:import Control.Monad
+./parconc-examples/par/strat-example/dist/build/autogen/Paths_strat_example.hs:import qualified Control.Exception as Exception
+./parconc-examples/par/strat-example/rsa1.hs:import Control.Parallel.Strategies
+./parconc-examples/par/strat-example/rsa1.hs:            "-" -> B.getContents
+./parconc-examples/par/parmonad-example/timetable2.hs:import Control.Monad.Par
+./parconc-examples/par/parmonad-example/timetable2.hs:import Control.DeepSeq
+./parconc-examples/par/parmonad-example/timetable.hs:import Control.DeepSeq
+./parconc-examples/par/parmonad-example/timetable1.hs:import Control.DeepSeq
+./parconc-examples/par/parmonad-example/parmonad.hs:import Control.Exception
+./parconc-examples/par/parmonad-example/parmonad.hs:import Control.Monad.Par.Scheds.Trace
+./parconc-examples/par/parmonad-example/ByteStringCompat.hs:import Control.DeepSeq
+./parconc-examples/par/parmonad-example/timetable_test.hs:import Control.DeepSeq
+./parconc-examples/par/parmonad-example/rsa-pipeline.hs:import Control.Monad.Par.Scheds.Trace
+./parconc-examples/par/parmonad-example/rsa-pipeline.hs:            "-" -> B.getContents
+./parconc-examples/par/parmonad-example/fwsparse/MapCompat.hs:import Control.Applicative
+./parconc-examples/par/parmonad-example/fwsparse/fwsparse1.hs:import Control.Monad.Par.Scheds.Trace
+./parconc-examples/par/parmonad-example/fwsparse/fwsparse1.hs:  -- gives slightly better results than Control.Monad.Par with monad-par-0.3.4
+./parconc-examples/par/parmonad-example/parinfer/parinfer.hs:import  Control.Monad.Par.Scheds.Trace
+./parconc-examples/par/parmonad-example/parinfer/parinfer.hs:  l <- getContents
+./parconc-examples/par/parmonad-example/parinfer/Lex.hs:--alexRightContext :: Int -> AlexAccPred _
+./parconc-examples/par/parmonad-example/parinfer/Lex.hs:alexRightContext (sc) user _ _ input = 
+./parconc-examples/par/parmonad-example/parinfer/Parse.hs:import Control.Applicative(Applicative(..))
+./parconc-examples/par/parmonad-example/parinfer/Type.hs:import Control.DeepSeq
+./parconc-examples/par/parmonad-example/parinfer/Infer.hs:import  Control.Monad.Par.Scheds.Trace
+./parconc-examples/par/parmonad-example/parinfer/Infer.hs:import Control.Monad
+./parconc-examples/par/parmonad-example/timetable3.hs:import Control.Monad.Par
+./parconc-examples/par/parmonad-example/timetable3.hs:import Control.DeepSeq
+./parconc-examples/par/parmonad-example/dist/build/autogen/Paths_parmonad_example.hs:import qualified Control.Exception as Exception
+./parconc-examples/par/parmonad-example/dist/build/parinfer/parinfer-tmp/Parse.hs:import Control.Applicative(Applicative(..))
+./parconc-examples/par/parmonad-example/Stream.hs:-- A module for stream processing built on top of Control.Monad.Par
+./parconc-examples/par/parmonad-example/Stream.hs:import Control.Monad.Par.Scheds.Trace as P
+./parconc-examples/par/parmonad-example/Stream.hs:import Control.DeepSeq
+./parconc-examples/par/eval-example/sudoku-par2.hs:import Control.Exception
+./parconc-examples/par/eval-example/sudoku-par2.hs:import Control.Monad.Par.Scheds.Trace
+./parconc-examples/par/eval-example/sudoku-par1.hs:import Control.Exception
+./parconc-examples/par/eval-example/sudoku1.hs:import Control.Exception
+./parconc-examples/par/eval-example/sudoku3.hs:import Control.Exception
+./parconc-examples/par/eval-example/sudoku3.hs:import Control.Parallel.Strategies hiding (parMap)
+./parconc-examples/par/eval-example/Sudoku.hs:import Control.Monad
+./parconc-examples/par/eval-example/sudoku4.hs:import Control.Exception
+./parconc-examples/par/eval-example/sudoku4.hs:import Control.Parallel.Strategies hiding (parMap)
+./parconc-examples/par/eval-example/sudoku-par4.hs:import Control.Exception
+./parconc-examples/par/eval-example/sudoku-par4.hs:import Control.Monad.Par
+./parconc-examples/par/eval-example/sudoku-par4.hs:import Control.DeepSeq
+./parconc-examples/par/eval-example/sudoku-par3.hs:import Control.Exception
+./parconc-examples/par/eval-example/sudoku-par3.hs:import Control.Monad.Par
+./parconc-examples/par/eval-example/rpar.hs:import Control.Parallel
+./parconc-examples/par/eval-example/rpar.hs:import Control.Parallel.Strategies
+./parconc-examples/par/eval-example/rpar.hs:import Control.Exception
+./parconc-examples/par/eval-example/dist/build/autogen/Paths_eval_example.hs:import qualified Control.Exception as Exception
+./parconc-examples/par/eval-example/sudoku2.hs:import Control.Exception
+./parconc-examples/par/eval-example/sudoku2.hs:import Control.Parallel.Strategies
+./parconc-examples/par/eval-example/sudoku2.hs:import Control.DeepSeq
+./parconc-examples/par/accelerate-example/mandel/mandel.hs:import Control.Monad
+./parconc-examples/par/accelerate-example/mandel/mandel.hs:import Control.Exception
+./parconc-examples/par/accelerate-example/dist/build/autogen/Paths_accelerate_example.hs:import qualified Control.Exception as Exception
+./parconc-examples/par/accelerate-example/dist/dist-sandbox-8bf9e092/build/autogen/Paths_accelerate_example.hs:import qualified Control.Exception as Exception
+./parconc-examples/conc/fork-example/reminders2.hs:import Control.Concurrent
+./parconc-examples/conc/fork-example/reminders2.hs:import Control.Monad
+./parconc-examples/conc/fork-example/reminders.hs:import Control.Concurrent
+./parconc-examples/conc/fork-example/reminders.hs:import Control.Monad
+./parconc-examples/conc/fork-example/fork.hs:import Control.Concurrent
+./parconc-examples/conc/fork-example/fork.hs:import Control.Monad
+./parconc-examples/conc/fork-example/dist/build/autogen/Paths_fork_example.hs:import qualified Control.Exception as Exception
+./parconc-examples/conc/distrib-example/distrib-chat/chat-noslave.hs:import Control.Distributed.Process hiding (mask, finally)
+./parconc-examples/conc/distrib-example/distrib-chat/chat-noslave.hs:import Control.Distributed.Process.Closure
+./parconc-examples/conc/distrib-example/distrib-chat/chat-noslave.hs:import Control.Distributed.Process.Backend.SimpleLocalnet
+./parconc-examples/conc/distrib-example/distrib-chat/chat-noslave.hs:import Control.Distributed.Process.Node as Node hiding (newLocalNode)
+./parconc-examples/conc/distrib-example/distrib-chat/chat-noslave.hs:import Control.Concurrent.Async
+./parconc-examples/conc/distrib-example/distrib-chat/chat-noslave.hs:import Control.Monad.IO.Class
+./parconc-examples/conc/distrib-example/distrib-chat/chat-noslave.hs:import Control.Monad
+./parconc-examples/conc/distrib-example/distrib-chat/chat-noslave.hs:import Control.Concurrent
+./parconc-examples/conc/distrib-example/distrib-chat/chat-noslave.hs:import Control.Concurrent.STM
+./parconc-examples/conc/distrib-example/distrib-chat/chat-noslave.hs:import Control.Exception
+./parconc-examples/conc/distrib-example/distrib-chat/chat.hs:import Control.Distributed.Process hiding (mask, finally)
+./parconc-examples/conc/distrib-example/distrib-chat/chat.hs:import Control.Distributed.Process.Closure
+./parconc-examples/conc/distrib-example/distrib-chat/chat.hs:import Control.Concurrent.Async
+./parconc-examples/conc/distrib-example/distrib-chat/chat.hs:import Control.Monad.IO.Class
+./parconc-examples/conc/distrib-example/distrib-chat/chat.hs:import Control.Monad
+./parconc-examples/conc/distrib-example/distrib-chat/chat.hs:import Control.Concurrent
+./parconc-examples/conc/distrib-example/distrib-chat/chat.hs:import Control.Concurrent.STM
+./parconc-examples/conc/distrib-example/distrib-chat/chat.hs:import Control.Exception
+./parconc-examples/conc/distrib-example/DistribUtils.hs:import Control.Distributed.Process
+./parconc-examples/conc/distrib-example/DistribUtils.hs:import Control.Distributed.Process.Closure
+./parconc-examples/conc/distrib-example/DistribUtils.hs:import Control.Distributed.Process.Node (initRemoteTable)
+./parconc-examples/conc/distrib-example/DistribUtils.hs:import Control.Distributed.Process.Backend.SimpleLocalnet
+./parconc-examples/conc/distrib-example/DistribUtils.hs:import Control.Distributed.Static hiding (initRemoteTable)
+./parconc-examples/conc/distrib-example/distrib-ping/ping.hs:import Control.Distributed.Process
+./parconc-examples/conc/distrib-example/distrib-ping/ping.hs:import Control.Distributed.Process.Closure
+./parconc-examples/conc/distrib-example/distrib-ping/ping-tc-merge.hs:import Control.Distributed.Process
+./parconc-examples/conc/distrib-example/distrib-ping/ping-tc-merge.hs:import Control.Distributed.Process.Closure
+./parconc-examples/conc/distrib-example/distrib-ping/ping-tc-merge.hs:import Control.Monad
+./parconc-examples/conc/distrib-example/distrib-ping/ping-multi.hs:import Control.Distributed.Process
+./parconc-examples/conc/distrib-example/distrib-ping/ping-multi.hs:import Control.Distributed.Process.Closure
+./parconc-examples/conc/distrib-example/distrib-ping/ping-multi.hs:import Control.Monad
+./parconc-examples/conc/distrib-example/distrib-ping/ping-tc-notify.hs:import Control.Distributed.Process
+./parconc-examples/conc/distrib-example/distrib-ping/ping-tc-notify.hs:import Control.Distributed.Process.Closure
+./parconc-examples/conc/distrib-example/distrib-ping/ping-tc-notify.hs:import Control.Monad
+./parconc-examples/conc/distrib-example/distrib-ping/ping-tc.hs:import Control.Distributed.Process
+./parconc-examples/conc/distrib-example/distrib-ping/ping-tc.hs:import Control.Distributed.Process.Closure
+./parconc-examples/conc/distrib-example/distrib-ping/ping-tc.hs:import Control.Monad
+./parconc-examples/conc/distrib-example/distrib-ping/ping-fail.hs:import Control.Distributed.Process
+./parconc-examples/conc/distrib-example/distrib-ping/ping-fail.hs:import Control.Distributed.Process.Closure
+./parconc-examples/conc/distrib-example/distrib-db/WorkerSample.hs:import Control.Distributed.Process
+./parconc-examples/conc/distrib-example/distrib-db/WorkerSample.hs:import Control.Distributed.Process.Serializable
+./parconc-examples/conc/distrib-example/distrib-db/WorkerSample.hs:import Control.Distributed.Process.Closure
+./parconc-examples/conc/distrib-example/distrib-db/WorkerSample.hs:import Control.Monad.IO.Class
+./parconc-examples/conc/distrib-example/distrib-db/WorkerSample.hs:import Control.Monad
+./parconc-examples/conc/distrib-example/distrib-db/WorkerSample.hs:import Control.Concurrent
+./parconc-examples/conc/distrib-example/distrib-db/DatabaseSample.hs:import Control.Distributed.Process
+./parconc-examples/conc/distrib-example/distrib-db/DatabaseSample.hs:import Control.Distributed.Process.Closure
+./parconc-examples/conc/distrib-example/distrib-db/DatabaseSample.hs:import Control.Monad.IO.Class
+./parconc-examples/conc/distrib-example/distrib-db/DatabaseSample.hs:import Control.Monad
+./parconc-examples/conc/distrib-example/distrib-db/DatabaseSample.hs:import Control.Concurrent hiding (newChan)
+./parconc-examples/conc/distrib-example/distrib-db/DatabaseSample.hs:import Control.Exception hiding (catch)
+./parconc-examples/conc/distrib-example/distrib-db/db.hs:import Control.Distributed.Process
+./parconc-examples/conc/distrib-example/distrib-db/db.hs:import Control.Monad.IO.Class
+./parconc-examples/conc/distrib-example/distrib-db/db.hs:import Control.Monad
+./parconc-examples/conc/distrib-example/distrib-db/Database.hs:import Control.Distributed.Process
+./parconc-examples/conc/mvar-example/mvar3.hs:import Control.Concurrent
+./parconc-examples/conc/mvar-example/chan2.hs:import Control.Concurrent hiding (Chan, newChan, readChan, writeChan, dupChan)
+./parconc-examples/conc/mvar-example/mvar2.hs:import Control.Concurrent
+./parconc-examples/conc/mvar-example/phonebook.hs:import Control.Concurrent
+./parconc-examples/conc/mvar-example/mvar1.hs:import Control.Concurrent
+./parconc-examples/conc/mvar-example/logger.hs:import Control.Concurrent
+./parconc-examples/conc/mvar-example/logger.hs:import Control.Monad
+./parconc-examples/conc/mvar-example/chan.hs:import Control.Concurrent hiding (Chan, newChan, readChan, writeChan)
+./parconc-examples/conc/mvar-example/dist/build/autogen/Paths_mvar_example.hs:import qualified Control.Exception as Exception
+./parconc-examples/conc/stm-example/tmvar.hs:import Control.Concurrent.STM hiding (TMVar, takeTMVar)
+./parconc-examples/conc/stm-example/TQueue.hs:import Control.Concurrent.STM (STM, TVar, newTVar, readTVar, writeTVar, retry)
+./parconc-examples/conc/stm-example/ConcurrentUtils.hs:import Control.Concurrent.STM
+./parconc-examples/conc/stm-example/ConcurrentUtils.hs:import Control.Exception
+./parconc-examples/conc/stm-example/ConcurrentUtils.hs:import Control.Concurrent
+./parconc-examples/conc/stm-example/ConcurrentUtils.hs:import Control.Monad
+./parconc-examples/conc/stm-example/ConcurrentUtils.hs:import Control.Applicative
+./parconc-examples/conc/stm-example/chanbench.hs:import Control.Concurrent.Async
+./parconc-examples/conc/stm-example/chanbench.hs:import Control.Monad
+./parconc-examples/conc/stm-example/chanbench.hs:import Control.Concurrent.Chan
+./parconc-examples/conc/stm-example/chanbench.hs:import Control.Concurrent.STM
+./parconc-examples/conc/stm-example/TChan.hs:import Control.Concurrent.STM (STM, TVar, newTVar, readTVar, writeTVar, retry, atomically)
+./parconc-examples/conc/stm-example/TBQueue.hs:import Control.Concurrent.STM
+./parconc-examples/conc/stm-example/geturlsfirst.hs:import Control.Concurrent
+./parconc-examples/conc/stm-example/geturlsfirst.hs:import Control.Exception
+./parconc-examples/conc/stm-example/geturlsfirst.hs:import Control.Concurrent.STM
+./parconc-examples/conc/stm-example/TList.hs:import Control.Concurrent.STM
+./parconc-examples/conc/stm-example/windowman.hs:import Control.Concurrent.STM
+./parconc-examples/conc/stm-example/dist/build/autogen/Paths_stm_example.hs:import qualified Control.Exception as Exception
+./parconc-examples/conc/server-example/server.hs:import Control.Monad
+./parconc-examples/conc/server-example/server.hs:import Control.Concurrent (forkIO)
+./parconc-examples/conc/server-example/server.hs:import Control.Exception
+./parconc-examples/conc/server-example/ConcurrentUtils.hs:import Control.Concurrent.STM
+./parconc-examples/conc/server-example/ConcurrentUtils.hs:import Control.Exception
+./parconc-examples/conc/server-example/ConcurrentUtils.hs:import Control.Concurrent
+./parconc-examples/conc/server-example/ConcurrentUtils.hs:import Control.Monad
+./parconc-examples/conc/server-example/ConcurrentUtils.hs:import Control.Applicative
+./parconc-examples/conc/server-example/server2.hs:import Control.Monad
+./parconc-examples/conc/server-example/server2.hs:import Control.Concurrent
+./parconc-examples/conc/server-example/server2.hs:import Control.Exception
+./parconc-examples/conc/server-example/server2.hs:import Control.Concurrent.Async
+./parconc-examples/conc/server-example/server2.hs:import Control.Concurrent.STM
+./parconc-examples/conc/server-example/chat.hs:import Control.Concurrent
+./parconc-examples/conc/server-example/chat.hs:import Control.Concurrent.STM
+./parconc-examples/conc/server-example/chat.hs:import Control.Concurrent.Async
+./parconc-examples/conc/server-example/chat.hs:import Control.Exception
+./parconc-examples/conc/server-example/chat.hs:import Control.Monad
+./parconc-examples/conc/server-example/dist/build/autogen/Paths_server_example.hs:import qualified Control.Exception as Exception
+./parconc-examples/conc/overlap-example/geturls2.hs:import Control.Concurrent
+./parconc-examples/conc/overlap-example/geturls4.hs:import Control.Concurrent
+./parconc-examples/conc/overlap-example/geturls4.hs:import Control.Exception
+./parconc-examples/conc/overlap-example/geturls5.hs:import Control.Concurrent
+./parconc-examples/conc/overlap-example/geturls5.hs:import Control.Monad
+./parconc-examples/conc/overlap-example/geturls3.hs:import Control.Concurrent
+./parconc-examples/conc/overlap-example/geturls6.hs:import Control.Monad
+./parconc-examples/conc/overlap-example/geturls6.hs:import Control.Concurrent
+./parconc-examples/conc/overlap-example/geturls6.hs:import Control.Exception
+./parconc-examples/conc/overlap-example/geturls1.hs:import Control.Concurrent
+./parconc-examples/conc/overlap-example/dist/build/autogen/Paths_overlap_examples.hs:import qualified Control.Exception as Exception
+./parconc-examples/conc/asyncex-example/geturlscancel.hs:import Control.Monad
+./parconc-examples/conc/asyncex-example/geturlscancel.hs:import Control.Concurrent
+./parconc-examples/conc/asyncex-example/geturlscancel.hs:import Control.Exception
+./parconc-examples/conc/asyncex-example/geturlscancel2.hs:import Control.Monad
+./parconc-examples/conc/asyncex-example/geturlscancel2.hs:import Control.Concurrent
+./parconc-examples/conc/asyncex-example/geturlscancel2.hs:import Control.Concurrent hiding (forkFinally)
+./parconc-examples/conc/asyncex-example/geturlscancel2.hs:import Control.Exception
+./parconc-examples/conc/asyncex-example/catch-mask.hs:import Control.Exception as E
+./parconc-examples/conc/asyncex-example/catch-mask.hs:               s <- hGetContents h
+./parconc-examples/conc/asyncex-example/catch-mask2.hs:import Control.Exception
+./parconc-examples/conc/asyncex-example/catch-mask2.hs:        r <- Control.Exception.try (openFile f ReadMode)
+./parconc-examples/conc/asyncex-example/catch-mask2.hs:            s <- hGetContents h
+./parconc-examples/conc/asyncex-example/chan3.hs:import Control.Concurrent hiding (Chan, newChan, readChan, writeChan, dupChan)
+./parconc-examples/conc/asyncex-example/chan3.hs:import Control.Exception
+./parconc-examples/conc/asyncex-example/timeout.hs:import Control.Concurrent
+./parconc-examples/conc/asyncex-example/timeout.hs:import Control.Exception
+./parconc-examples/conc/asyncex-example/dist/build/autogen/Paths_asyncex_example.hs:import qualified Control.Exception as Exception
+./parconc-examples/conc/asyncex-example/modifytwo.hs:import Control.Concurrent
+./parconc-examples/conc/par-example/findpar.hs:import Control.Concurrent
+./parconc-examples/conc/par-example/findpar.hs:import Control.Concurrent.Async
+./parconc-examples/conc/par-example/findpar.hs:  fs <- getDirectoryContents d
+./parconc-examples/conc/par-example/findpar5.hs:import Control.Concurrent
+./parconc-examples/conc/par-example/findpar5.hs:import qualified Control.Monad.Par as P hiding (runParIO)
+./parconc-examples/conc/par-example/findpar5.hs:import Control.Monad.Par.IO
+./parconc-examples/conc/par-example/findpar5.hs:import Control.Monad.IO.Class
+./parconc-examples/conc/par-example/findpar5.hs:import Control.Exception
+./parconc-examples/conc/par-example/findpar5.hs:  fs <- liftIO $ getDirectoryContents d
+./parconc-examples/conc/par-example/findpar3.hs:import Control.Concurrent.Async
+./parconc-examples/conc/par-example/findpar3.hs:import Control.Exception (finally)
+./parconc-examples/conc/par-example/findpar3.hs:import Control.Concurrent.MVar
+./parconc-examples/conc/par-example/findpar3.hs:import Control.Concurrent.STM
+./parconc-examples/conc/par-example/findpar3.hs:  fs <- getDirectoryContents d
+./parconc-examples/conc/par-example/findpar4.hs:import Control.Concurrent
+./parconc-examples/conc/par-example/findpar4.hs:import Control.Monad.Par.IO
+./parconc-examples/conc/par-example/findpar4.hs:import Control.Monad.Par.Class
+./parconc-examples/conc/par-example/findpar4.hs:import Control.Monad.IO.Class
+./parconc-examples/conc/par-example/findpar4.hs:import Control.Exception
+./parconc-examples/conc/par-example/findpar4.hs:  fs <- liftIO $ getDirectoryContents d
+./parconc-examples/conc/par-example/findseq.hs:  fs <- getDirectoryContents d                         -- <1>
+./parconc-examples/conc/par-example/findpar2.hs:import Control.Concurrent.Async
+./parconc-examples/conc/par-example/findpar2.hs:import Control.Exception (finally)
+./parconc-examples/conc/par-example/findpar2.hs:import Control.Concurrent.MVar
+./parconc-examples/conc/par-example/findpar2.hs:  fs <- getDirectoryContents d
+./parconc-examples/conc/par-example/dist/build/autogen/Paths_par_examples.hs:import qualified Control.Exception as Exception
+./parconc-examples/conc/higher-example/geturls7.hs:import Control.Concurrent
+./parconc-examples/conc/higher-example/geturls7.hs:import Control.Exception
+./parconc-examples/conc/higher-example/geturls7.hs:import Control.Concurrent.STM
+./parconc-examples/conc/higher-example/ConcurrentUtils.hs:import Control.Concurrent.STM
+./parconc-examples/conc/higher-example/ConcurrentUtils.hs:import Control.Exception
+./parconc-examples/conc/higher-example/ConcurrentUtils.hs:import Control.Concurrent
+./parconc-examples/conc/higher-example/ConcurrentUtils.hs:import Control.Monad
+./parconc-examples/conc/higher-example/ConcurrentUtils.hs:import Control.Applicative
+./parconc-examples/conc/higher-example/timeout2.hs:import Control.Concurrent
+./parconc-examples/conc/higher-example/timeout2.hs:import Control.Exception
+./parconc-examples/conc/higher-example/timeout2.hs:import Control.Concurrent.Async
+./parconc-examples/conc/higher-example/Async.hs:import Control.Concurrent.STM
+./parconc-examples/conc/higher-example/Async.hs:import Control.Exception
+./parconc-examples/conc/higher-example/Async.hs:import Control.Concurrent (ThreadId, forkIO)
+./parconc-examples/conc/higher-example/dist/build/autogen/Paths_higher_example_example.hs:import qualified Control.Exception as Exception
+./parconc-examples/conc/debugging-tuning/deadlock2.hs:import Control.Concurrent
+./parconc-examples/conc/debugging-tuning/deadlock2.hs:import Control.Exception as E
+./parconc-examples/conc/debugging-tuning/threadperf1.hs:import Control.Concurrent
+./parconc-examples/conc/debugging-tuning/threadperf1.hs:import Control.Monad
+./parconc-examples/conc/debugging-tuning/threadperf2.hs:import Control.Concurrent
+./parconc-examples/conc/debugging-tuning/threadperf2.hs:import Control.Monad
+./parconc-examples/conc/debugging-tuning/geturlsstm.hs:import Control.Monad
+./parconc-examples/conc/debugging-tuning/geturlsstm.hs:import Control.Concurrent
+./parconc-examples/conc/debugging-tuning/geturlsstm.hs:import Control.Exception
+./parconc-examples/conc/debugging-tuning/geturlsstm.hs:import Control.Concurrent.STM
+./parconc-examples/conc/debugging-tuning/mvar4.hs:import Control.Concurrent
+./parconc-examples/conc/debugging-tuning/other/BingTranslate.hs:getLangs :: [Content] -> [String]
+./parconc-examples/conc/debugging-tuning/other/BingTranslate.hs:getLangs [Elem (Element {elName = QName { qName = "ArrayOfstring" }, elContent = strs })]
+./parconc-examples/conc/debugging-tuning/other/BingTranslate.hs:getString :: Content -> String
+./parconc-examples/conc/debugging-tuning/other/BingTranslate.hs:getString (Elem (Element {elName = QName { qName = "string" }, elContent = [Text (CData { cdData = str })]})) = str
+./parconc-examples/conc/debugging-tuning/other/BingTranslate.hs:--       request | Just text <- body =  request_hdr `addRequestContent` text
+./parconc-examples/conc/debugging-tuning/other/BingTranslate.hs:-- addRequestContent :: Request ByteString -> ByteString -> Request ByteString
+./parconc-examples/conc/debugging-tuning/other/BingTranslate.hs:-- addRequestContent rq content
+./parconc-examples/conc/debugging-tuning/other/BingTranslate.hs:--           mkHeader HdrContentType "text/plain" :
+./parconc-examples/conc/debugging-tuning/other/BingTranslate.hs:--           mkHeader HdrContentLength (show (B.length content)) : rqHeaders rq
+./parconc-examples/conc/debugging-tuning/other/game.hs:import Control.Concurrent
+./parconc-examples/conc/debugging-tuning/other/game.hs:import Control.Monad
+./parconc-examples/conc/debugging-tuning/other/arithgame.hs:import Control.Concurrent
+./parconc-examples/conc/debugging-tuning/other/bingtranslator.hs:import Control.Concurrent
+./parconc-examples/conc/debugging-tuning/other/bingtranslator.hs:import Control.Exception
+./parconc-examples/conc/debugging-tuning/other/bingtranslator.hs:import Control.Monad
+./parconc-examples/conc/debugging-tuning/other/bingtranslatorconc.hs:import Control.Exception
+./parconc-examples/conc/debugging-tuning/other/bingtranslatorconc.hs:import Control.Monad
+./parconc-examples/conc/debugging-tuning/other/bingtranslatorconc.hs:import Control.Concurrent
+./parconc-examples/conc/debugging-tuning/other/bingtranslatorconc.hs:--       request | Just text <- body =  request_hdr `addRequestContent` text
+./parconc-examples/conc/debugging-tuning/other/bingtranslatorconc.hs:-- addRequestContent :: Request ByteString -> ByteString -> Request ByteString
+./parconc-examples/conc/debugging-tuning/other/bingtranslatorconc.hs:-- addRequestContent rq content
+./parconc-examples/conc/debugging-tuning/other/bingtranslatorconc.hs:--           mkHeader HdrContentType "text/plain" :
+./parconc-examples/conc/debugging-tuning/other/bingtranslatorconc.hs:--           mkHeader HdrContentLength (show (B.length content)) : rqHeaders rq
+./parconc-examples/conc/debugging-tuning/other/correcter.hs:import Control.Monad
+./parconc-examples/conc/debugging-tuning/other/correcter.hs:import Control.Concurrent
+./parconc-examples/conc/debugging-tuning/other/correcter.hs:import Control.Concurrent.STM
+./parconc-examples/conc/debugging-tuning/deadlock1.hs:import Control.Concurrent
+./parconc-examples/conc/debugging-tuning/deadlock1.hs:import Control.Exception
+./extensible-effects-example/extensible-effects-example1.hs:{-# LANGUAGE FlexibleContexts #-}
+./extensible-effects-example/extensible-effects-example1.hs:import Control.Eff
+./extensible-effects-example/extensible-effects-example1.hs:import Control.Eff.Lift
+./extensible-effects-example/extensible-effects-example1.hs:import Control.Eff.State.Strict
+./extensible-effects-example/extensible-effects-example1.hs:import Control.Eff.Writer.Strict
+./extensible-effects-example/extensible-effects-example1.hs:import Control.Monad (void)
+./extensible-effects-example/extensible-effects-example6.hs:{-# LANGUAGE FlexibleContexts    #-}
+./extensible-effects-example/extensible-effects-example6.hs:import Control.Eff
+./extensible-effects-example/extensible-effects-example6.hs:import Control.Eff.Lift
+./extensible-effects-example/extensible-effects-example6.hs:import Control.Applicative
+./extensible-effects-example/extensible-effects-example5.hs:{-# LANGUAGE FlexibleContexts    #-}
+./extensible-effects-example/extensible-effects-example5.hs:import Control.Eff
+./extensible-effects-example/extensible-effects-example5.hs:import Control.Eff.State.Lazy
+./extensible-effects-example/extensible-effects-example5.hs:import Control.Eff.Writer.Strict
+./extensible-effects-example/extensible-effects-example5.hs:import Control.Eff.Exception
+./extensible-effects-example/extensible-effects-example5.hs:import Control.Eff.Coroutine
+./extensible-effects-example/extensible-effects-example5.hs:import Control.Eff.Trace
+./extensible-effects-example/extensible-effects-example5.hs:import Control.Eff.Fresh
+./extensible-effects-example/extensible-effects-example2.hs:{-# LANGUAGE FlexibleContexts, DeriveDataTypeable #-}
+./extensible-effects-example/extensible-effects-example2.hs:import Control.Eff
+./extensible-effects-example/extensible-effects-example2.hs:import Control.Eff.Reader.Lazy
+./extensible-effects-example/extensible-effects-example2.hs:import Control.Eff.State.Lazy
+./extensible-effects-example/extensible-effects-example2.hs:import Control.Eff.Writer.Lazy
+./extensible-effects-example/extensible-effects-example2.hs:import Control.Monad
+./extensible-effects-example/extensible-effects-example4.hs:{-# LANGUAGE FlexibleContexts    #-}
+./extensible-effects-example/extensible-effects-example4.hs:import Control.Eff
+./extensible-effects-example/extensible-effects-example4.hs:import Control.Eff.Reader.Lazy
+./extensible-effects-example/extensible-effects-example4.hs:import Control.Eff.State.Lazy
+./extensible-effects-example/extensible-effects-example4.hs:import Control.Eff.Exception
+./extensible-effects-example/extensible-effects-example4.hs:import Control.Eff.Choose
+./extensible-effects-example/extensible-effects-example4.hs:import Control.Eff.Cut
+./extensible-effects-example/extensible-effects-example4.hs:import Control.Eff.Lift
+./extensible-effects-example/extensible-effects-example4.hs:import Control.Monad
+./extensible-effects-example/extensible-effects-example3.hs:import Control.Applicative
+./extensible-effects-example/extensible-effects-example3.hs:import Control.Monad
+./extensible-effects-example/extensible-effects-example3.hs:import Control.Concurrent (threadDelay)
+./extensible-effects-example/extensible-effects-example3.hs:import Control.Eff
+./extensible-effects-example/extensible-effects-example3.hs:import Control.Eff.State.Strict
+./extensible-effects-example/extensible-effects-example3.hs:import Control.Eff.Lift
+./extensible-effects-example/extensible-effects-example3.hs:import Control.Eff.Fresh
+./extensible-effects-example/extensible-effects-example3.hs:import Control.Eff.Exception
+./extensible-effects-example/extensible-effects-example3.hs:import Control.Eff.Coroutine
+./extensible-effects-example/extensible-effects-example3.hs:import Control.Eff.Choose
+./extensible-effects-example/extensible-effects-example3.hs:import Control.Eff.Cut
+./extensible-effects-example/dist/dist-sandbox-1d4045f8/build/autogen/Paths_extensible_effects_example.hs:import qualified Control.Exception as Exception
+./PanGalacticDivision/PanGalacticDivision.hs:import           Control.Arrow (second, (&&&))
+./PanGalacticDivision/dist/build/autogen/Paths_PanGalacticDivision.hs:import qualified Control.Exception as Exception
+./PanGalacticDivision/dist/dist-sandbox-6245aded/build/autogen/Paths_PanGalacticDivision.hs:import qualified Control.Exception as Exception
+./list-example/list-example1.hs:import Control.Monad.Trans
+./list-example/EX.hs:import Control.Applicative
+./list-example/EX.hs:import Control.Monad
+./monad-control-example/monad-control-example1.hs:{-# LANGUAGE FlexibleContexts #-}
+./monad-control-example/monad-control-example1.hs:import Control.Applicative
+./monad-control-example/monad-control-example1.hs:import Control.Monad.Base
+./monad-control-example/monad-control-example1.hs:import Control.Monad.Trans
+./monad-control-example/monad-control-example1.hs:import Control.Monad.Trans.Maybe
+./monad-control-example/monad-control-example1.hs:import Control.Monad.Trans.State
+./monad-control-example/monad-control-example1.hs:import Control.Monad.Trans.Control
+./monad-control-example/monad-control-example1.hs:import Control.Exception
+./monad-control-example/monad-control-example1.hs:doubleT :: (Monad (t [] ), MonadTransControl t) => t [] a -> t [] a
+./monad-control-example/monad-control-example1.hs:doubleT' :: (Monad (t [] ), MonadTransControl t) => t [] a -> t [] a
+./monad-control-example/monad-control-example1.hs:doubleM :: (MonadBaseControl [] m) => m a -> m a
+./monad-control-example/monad-control-example1.hs: MonadBaseControl を使用したサンプル
+./monad-control-example/monad-control-example1.hs:exControl :: IO ()
+./monad-control-example/monad-control-example1.hs:exControl = do
+./monad-control-example/monad-control-example1.hs:foo :: MonadBaseControl IO m => m String -> m String
+./monad-control-example/monad-control-example1.hs:foo' :: MonadBaseControl IO m => m String -> m String
+./monad-control-example/monad-control-example1.hs:foo'' :: MonadBaseControl IO m => m String -> m String
+./monad-control-example/monad-control-example1.hs:-- ただし、Control.Exception.Lifted 実際はあるので使うときはそっちを
+./monad-control-example/monad-control-example1.hs:ctlCatch :: (MonadBaseControl IO m, Exception e) => m a -> (e -> m a ) -> m a
+./monad-control-example/monad-control-example1.hs:maybeTIO :: (Monad (t IO), MonadTransControl t) => t IO Int
+./monad-control-example/monad-control-example1.hs:maybeMIO :: (MonadBaseControl IO m) => m Int
+./monad-control-example/monad-control-example1.hs:testControl      :: MaybeT IO Int -> MaybeT IO Int
+./monad-control-example/monad-control-example1.hs:testControl      f = control (\run -> twiceIO (run maybeTIO))
+./monad-control-example/monad-control-example1.hs:  runMaybeT (testControl      maybeTIO) >>= print
+./monad-control-example/monad-control-example1.hs:  runMaybeT (testControl      maybeMIO) >>= print
+./monad-control-example/monad-control-example3.hs:{-# LANGUAGE FlexibleContexts #-}
+./monad-control-example/monad-control-example3.hs:import Control.Monad.Base
+./monad-control-example/monad-control-example3.hs:import Control.Monad.Reader
+./monad-control-example/monad-control-example3.hs:import Control.Monad.State
+./monad-control-example/monad-control-example3.hs:import Control.Applicative
+./monad-control-example/monad-control-example3.hs:import Control.Monad.Trans.Control
+./monad-control-example/monad-control-example3.hs:import Control.Monad.Identity
+./monad-control-example/monad-control-example3.hs:import Control.Monad.Except
+./monad-control-example/monad-control-example3.hs:import Control.Monad.Trans.Except
+./monad-control-example/monad-control-example3.hs:-- MonadTransControl が1つだけ持ち上げるというから試してみたが
+./monad-control-example/monad-control-example3.hs:instance MonadTransControl EvalE where
+./monad-control-example/monad-control-example3.hs:instance (MonadBaseControl b m) => MonadBaseControl b (EvalE m) where
+./monad-control-example/monad-control-example3.hs:evalET :: (Monad (t []), MonadTransControl t) => t [] Int
+./monad-control-example/monad-control-example3.hs:evalEM :: (MonadBaseControl [] m) => m Int
+./monad-control-example/monad-control-example3.hs:instance MonadTransControl EvalR where
+./monad-control-example/monad-control-example3.hs:instance (MonadBaseControl b m) => MonadBaseControl b (EvalR m) where
+./monad-control-example/monad-control-example2.hs:{-# LANGUAGE FlexibleContexts #-}
+./monad-control-example/monad-control-example2.hs:import Control.Monad.Base
+./monad-control-example/monad-control-example2.hs:import Control.Monad.Reader
+./monad-control-example/monad-control-example2.hs:import Control.Monad.State
+./monad-control-example/monad-control-example2.hs:import Control.Applicative
+./monad-control-example/monad-control-example2.hs:import Control.Monad.Trans.Control
+./monad-control-example/monad-control-example2.hs:import Control.Exception.Lifted (catch)
+./monad-control-example/monad-control-example2.hs:import Control.Exception (SomeException)
+./monad-control-example/monad-control-example2.hs:instance MonadTransControl CounterT where
+./monad-control-example/monad-control-example2.hs:instance (MonadBaseControl b m) => MonadBaseControl b (CounterT m) where
+./monad-control-example/monad-control-example2.hs:instance MonadTransControl MyAppT where
+./monad-control-example/monad-control-example2.hs:instance MonadBaseControl b m => MonadBaseControl b (MyAppT m) where
+./monad-control-example/monad-control-example2.hs:        hGetContents h
+./monad-control-example/monad-control-example4.hs:{-# LANGUAGE FlexibleContexts #-}
+./monad-control-example/monad-control-example4.hs:import Control.Exception as E
+./monad-control-example/monad-control-example4.hs:import Control.Monad.Identity
+./monad-control-example/monad-control-example4.hs:import Control.Monad.Reader
+./monad-control-example/monad-control-example4.hs:import Control.Monad.State
+./monad-control-example/monad-control-example4.hs:import Control.Monad.Trans.Control
+./monad-control-example/monad-control-example4.hs:import Control.Monad.Trans.Class
+./monad-control-example/monad-control-example4.hs:import Control.Monad.Trans.Except
+./monad-control-example/monad-control-example4.hs:-- MonadBaseControlも
+./monad-control-example/dist/build/autogen/Paths_monad_control_example.hs:import qualified Control.Exception as Exception
+./monad-control-example/dist/dist-sandbox-140ec0a7/build/autogen/Paths_monad_control_example.hs:import qualified Control.Exception as Exception
+./arrow-example/arrow-example6.hs:import Control.Monad.Reader
+./arrow-example/arrow-example6.hs:import Control.Arrow
+./arrow-example/arrow-example6.hs:import Control.Arrow.Abort
+./arrow-example/arrow-example6.hs:import Control.Arrow.Reader
+./arrow-example/arrow-example2.hs:import Control.Arrow
+./arrow-example/arrow-example3.hs:import Control.Arrow
+./arrow-example/arrow-example4.hs:import qualified Control.Category as Cat
+./arrow-example/arrow-example4.hs:import Control.Arrow
+./arrow-example/arrow-example5.hs:import Control.Arrow
+./arrow-example/arrow-example5.hs:import qualified Control.Category as Cat
+./arrow-example/arrow-example1.hs:import Control.Arrow
+./arrow-example/arrow-example1.hs:arrACont :: (->) [Int] Int
+./arrow-example/arrow-example1.hs:arrACont = filter odd >>> filter (> 10) >>> length
+./arrow-example/dist/dist-sandbox-83673e72/build/autogen/Paths_arrow_example.hs:import qualified Control.Exception as Exception
+./alex-example/Tokens.hs:  s <- getContents
+./alex-example/Tokens.hs:--alexRightContext :: Int -> AlexAccPred _
+./alex-example/Tokens.hs:alexRightContext (sc) user _ _ input = 
+./free-example/free-exampleA.hs:import Control.Monad.Free
+./free-example/free-exampleA.hs:import Control.Monad.State
+./free-example/free-exampleA.hs:import Control.Monad.Writer
+./free-example/free-example9.hs:{-# LANGUAGE FlexibleContexts #-}
+./free-example/free-example9.hs:import Control.Monad
+./free-example/free-example9.hs:import Control.Monad.Free
+./free-example/free-example9.hs:import Control.Monad.Random
+./free-example/free-example9.hs:import Control.Applicative
+./free-example/free-example9.hs:import Control.Arrow (first,(&&&),(***),Arrow,arr)
+./free-example/free-example5.hs:import Control.Monad.Trans.Free
+./free-example/free-example5.hs:import Control.Monad.Trans (lift)
+./free-example/free-example3.hs:import Control.Monad.Free
+./free-example/free-example3.hs:import Control.Monad.Trans.Free (FreeT) 
+./free-example/free-example1.hs:import Control.Monad.Free
+./free-example/free-example7.hs:import Control.Monad.Trans.Free
+./free-example/free-exampleD.hs:{-# LANGUAGE FlexibleContexts #-}
+./free-example/free-exampleD.hs:import Control.Applicative
+./free-example/free-exampleD.hs:import Control.Monad
+./free-example/free-exampleD.hs:import Control.Monad.Free
+./free-example/free-exampleD.hs:import Control.Monad.IO.Class
+./free-example/free-exampleD.hs:import Control.Monad.Trans.Class
+./free-example/free-exampleD.hs:import Control.Monad.Trans.Identity
+./free-example/free-exampleD.hs:import Control.Monad.Trans.Reader
+./free-example/free-exampleC.hs:{-# LANGUAGE FlexibleContexts          #-}
+./free-example/free-exampleC.hs:import Control.Applicative
+./free-example/free-exampleC.hs:import Control.Monad.Trans.Free
+./free-example/free-exampleC.hs:import Control.Monad.State
+./free-example/free-exampleC.hs:import Control.Monad.Identity
+./free-example/free-exampleB.hs:import Control.Monad.State
+./free-example/free-exampleB.hs:import Control.Monad.Trans
+./free-example/free-exampleB.hs:import Control.Monad.Trans.Free
+./free-example/free-example4.hs:import Control.Monad.Trans.Free
+./free-example/free-example4.hs:import Control.Monad.Trans (lift)
+./free-example/free-example4.hs:import Control.Monad(when)
+./free-example/free-example8.hs:import Control.Applicative
+./free-example/free-example8.hs:import Control.Monad.Free
+./free-example/free-example2.hs:import Control.Monad.Trans.Free
+./free-example/free-example6.hs:import Control.Monad.Trans.Free
+./free-example/free-example6.hs:import Control.Monad.Trans
+./free-example/free-example6.hs:import Control.Monad
+./free-example/dist/dist-sandbox-bfecc200/build/autogen/Paths_free_example.hs:import qualified Control.Exception as Exception
+./mysql-example/DBSetting.hs:import Control.Monad.Trans.Resource (runResourceT, ResourceT)
+./mysql-example/DBSetting.hs:import Control.Monad.Logger (runNoLoggingT, NoLoggingT)
+./mysql-example/PersistMySQL.hs:{-# LANGUAGE QuasiQuotes, TemplateHaskell, TypeFamilies, OverloadedStrings, GADTs, FlexibleContexts #-}
+./conduit-example/conduit-example.hs:import Control.Monad (when)
+./conduit-example/conduit-example.hs:import Control.Monad.Trans.Resource
+./conduit-example/conduit-example.hs:import Control.Monad.IO.Class (MonadIO, liftIO)
+./conduit-example/conduit-example.hs:import Control.Monad.State
+./conduit-example/state-machine.hs:import Control.Concurrent.STM
+./conduit-example/state-machine.hs:import Control.Concurrent.Async
+./conduit-example/state-machine.hs:import Control.Monad.Trans.Resource
+./conduit-example/state-machine.hs:import Control.Monad.IO.Class (MonadIO, liftIO)
+./conduit-example/state-machine.hs:import Control.Monad
+./conduit-example/x.hs:import Control.Monad.Trans.Resource
+./conduit-example/dist/dist-sandbox-4df801/build/autogen/Paths_conduit_example.hs:import qualified Control.Exception as Exception
+./monad-example/ex-transformer1.hs:import Control.Monad
+./monad-example/ex-transformer1.hs:import Control.Monad.State
+./monad-example/Example/Sheep.hs:import Control.Monad
+./monad-example/ex-reader.hs:import Control.Monad
+./monad-example/ex-reader.hs:import Control.Monad.Reader
+./monad-example/monad-example1.hs:import Control.Monad
+./monad-example/monad-example1.hs:    contents <- hGetContents hdl
+./monad-example/monad-example4.hs:import Control.Monad.Reader
+./monad-example/monad-example4.hs:import Control.Monad.Writer
+./monad-example/monad-example4.hs:import Control.Monad.Cont
+./monad-example/monad-example4.hs:-- ContT と WriterT の合成
+./monad-example/monad-example4.hs:contWT :: Int -> ContT String LogWriter String
+./monad-example/monad-example4.hs:runContWT :: Int -> IO (String, [Entry])
+./monad-example/monad-example4.hs:runContWT i = do
+./monad-example/monad-example4.hs:    (s, e) <- runWriterT (runContT (contWT i) return)
+./monad-example/monad-example4.hs:exContWT :: IO ()
+./monad-example/monad-example4.hs:exContWT = do
+./monad-example/monad-example4.hs:    (s, e) <- runContWT 0
+./monad-example/monad-example4.hs:-- ReaderT と ContT の合成
+./monad-example/monad-example4.hs:contRT :: ReaderT Int (ContT String IO) String
+./monad-example/monad-example4.hs:runContRT :: Int -> IO (String)
+./monad-example/monad-example4.hs:runContRT i = do
+./monad-example/monad-example4.hs:  n <- runContT (runReaderT contRT i) return
+./monad-example/monad-example4.hs:exContRT :: IO ()
+./monad-example/monad-example4.hs:exContRT = do
+./monad-example/monad-example4.hs:    n <- runContRT 0
+./monad-example/monad-example4.hs:contRT' :: ContT String (ReaderT Int IO) String
+./monad-example/monad-example4.hs:runContRT' :: Int -> IO (String)
+./monad-example/monad-example4.hs:runContRT' i = do
+./monad-example/monad-example4.hs:  n <- runReaderT (runContT contRT' return) i
+./monad-example/monad-example4.hs:exContRT' :: IO ()
+./monad-example/monad-example4.hs:exContRT' = do
+./monad-example/monad-example4.hs:    n <- runContRT' 0
+./monad-example/monad-example4.hs:    exContWT 
+./monad-example/monad-example4.hs:    exContRT 
+./monad-example/monad-example4.hs:    exContRT' 
+./monad-example/monad-example5.hs:import Control.Monad.State
+./monad-example/monad-example5.hs:import Control.Monad.ST
+./monad-example/monad-example5.hs:import Control.Monad.Trans
+./monad-example/ex-writer.hs:import Control.Monad
+./monad-example/ex-writer.hs:import Control.Monad.Writer
+./monad-example/monad-example3.hs:import Control.Monad.Reader
+./monad-example/monad-example3.hs:import Control.Monad.Writer
+./monad-example/monad-example3.hs:import Control.Monad.Cont
+./monad-example/monad-example3.hs:-- Reader モナドと Writer モナド Cont モナドのサンプル
+./monad-example/monad-example3.hs:type DictC = Cont Int Dict
+./monad-example/monad-example3.hs:type ListC = Cont Int ListD
+./monad-example/monad-example3.hs:-- Cont モナド
+./monad-example/monad-example3.hs:exCont :: Int -> Cont String String
+./monad-example/monad-example3.hs:exCont n = do
+./monad-example/monad-example3.hs:exContIO :: Int -> Cont IString IString
+./monad-example/monad-example3.hs:exContIO n = do
+./monad-example/monad-example3.hs:exContT :: Int -> ContT String IO String
+./monad-example/monad-example3.hs:exContT n = do
+./monad-example/monad-example3.hs:  print $ runCont (exCont 20) id
+./monad-example/monad-example3.hs:  print $ runCont contC Map.size
+./monad-example/monad-example3.hs:  -- withCont を使って データの型を変換できる
+./monad-example/monad-example3.hs:  print $ runCont (withCont convDL contC) length 
+./monad-example/monad-example3.hs:  print $ (runCont contC . convDL) length 
+./monad-example/monad-example3.hs:  print $ runCont (exCont 10) id
+./monad-example/monad-example3.hs:  r <- runCont (exContIO 10) id
+./monad-example/monad-example3.hs:  r <- runContT (exContT 10) return
+./monad-example/ex-transformer2.hs:import Control.Monad
+./monad-example/ex-transformer2.hs:import Control.Monad.State
+./monad-example/ex-transformer2.hs:import Control.Monad.Writer
+./monad-example/monad-example2.hs:import Control.Monad
+./monad-example/monad-example2.hs:import Control.Monad.Except
+./monad-example/monad-example2.hs:import Control.Monad.State
+./monad-example/monad-example2.hs:import Control.Monad.ST
+./monad-example/ex-transformer3.hs:{-# LANGUAGE FlexibleContexts #-}
+./monad-example/ex-transformer3.hs:import Control.Monad
+./monad-example/ex-transformer3.hs:import Control.Monad.State
+./monad-example/ex-transformer3.hs:import Control.Monad.Writer
+./monad-example/dist/dist-sandbox-762f138b/build/autogen/Paths_monad_example.hs:import qualified Control.Exception as Exception
+./tmp/hothasktags/Main.hs:import Control.Monad (forM)
+./tmp/hothasktags/Main.hs:    matchesSpec _ (L.EModuleContents _ (L.ModuleName _ _)) = False  -- XXX wrong, moduleScope handles it though
+./tmp/hothasktags/Main.hs:            Map.unions [ modExports db modname | L.EModuleContents _ (L.ModuleName _ modname) <- especs ]
+./tmp/hothasktags/Main.hs:        result <- L.parseFileContentsWithMode (mode file)
+./tmp/hothasktags/Main.hs:                \and FlexibleContexts"
+./tmp/hothasktags/Main.hs:         words "MultiParamTypeClasses ExistentialQuantification FlexibleContexts"
+./tmp/hothasktags/dist/build/autogen/Paths_hothasktags.hs:import qualified Control.Exception as Exception
+./tmp/pointfree-1.1/Plugin/Pl/Rules.hs:import Control.Monad.Fix (fix)
+./tmp/pointfree-1.1/Plugin/Pl/Rules.hs:  -- experimental support for Control.Arrow stuff 
+./tmp/pointfree-1.1/Plugin/Pl/Transform.hs:import Control.Monad.Trans.State
+./tmp/pointfree-1.1/Plugin/Pl/Common.hs:        module Control.Arrow,
+./tmp/pointfree-1.1/Plugin/Pl/Common.hs:        module Control.Monad,
+./tmp/pointfree-1.1/Plugin/Pl/Common.hs:import Control.Monad
+./tmp/pointfree-1.1/Plugin/Pl/Common.hs:import Control.Arrow (first, second, (***), (&&&), (|||), (+++))
+./tmp/pointfree-1.1/dist/build/autogen/Paths_pointfree.hs:import qualified Control.Exception as Exception
+./tmp/lushtags/src/Tags.hs:extractExportSpec (EModuleContents _ (ModuleName loc name)) = (name, loc)
+./tmp/lushtags/src/Main.hs:import Language.Haskell.Exts.Annotated (parseFileContentsWithMode, ParseMode(..), knownExtensions, ParseResult(ParseOk, ParseFailed))
+./tmp/lushtags/src/Main.hs:    (fileContents, fileLines) <- loadFile file
+./tmp/lushtags/src/Main.hs:    case parseFileContentsWithMode parseMode fileContents of
+./tmp/lushtags/src/Main.hs:    let fullContents = T.unpack text
+./tmp/lushtags/src/Main.hs:    return (fullContents, fileLines)
+./tmp/lushtags/dist/build/autogen/Paths_lushtags.hs:import qualified Control.Exception as Exception
+./tmp/cpphs-1.19/Language/Preprocessor/Cpphs/CppIfdef.hs:import Control.Monad    (when)
+./tmp/cpphs-1.19/Language/Preprocessor/Cpphs/MacroPass.hs:import Control.Monad    ((=<<))
+./tmp/cpphs-1.19/Language/Preprocessor/Cpphs/ReadFirst.hs:import Control.Monad     (when)
+./tmp/cpphs-1.19/cpphs.hs:import Control.Monad  ( when )
+./tmp/cpphs-1.19/cpphs.hs:                             Nothing -> ("stdin", getContents)
+./tmp/cpphs-1.19/dist/build/autogen/Paths_cpphs.hs:import qualified Control.Exception as Exception
+./wiki-example/src/FileUtils.hs:import Control.Monad
+./wiki-example/src/FileUtils.hs:dirEntries path = return . filter notDotFile =<< getDirectoryContents path
+./wiki-example/src/CGI.hs:   HTTPResponse(..), httpResponseToString, textContentType) where
+./wiki-example/src/CGI.hs:import Control.Monad
+./wiki-example/src/CGI.hs:              input <- getContents
+./wiki-example/src/CGI.hs:    resContentType :: String,
+./wiki-example/src/CGI.hs:  concat [ "Content-Type: ", ctype, "\r\n",
+./wiki-example/src/CGI.hs:           "Content-Length: ", show (length body), "\r\n",
+./wiki-example/src/CGI.hs:textContentType typ encoding = concat [typ, "; charset=\"", encoding, "\""]
+./wiki-example/src/Database.hs:import Control.Monad
+./wiki-example/src/Database.hs:import Control.Concurrent (threadDelay)
+./wiki-example/src/Database.hs:import Control.Exception (bracket)
+./wiki-example/src/CGIMain.hs:main = do ctx <- loadContext "./config"
+./wiki-example/src/LazyLines.hs:module LazyLines (Context(..), loadContext, appMain) where
+./wiki-example/src/LazyLines.hs:appMain :: Context -> HTTPRequest -> IO HTTPResponse
+./wiki-example/src/LazyLines.hs:data Context = Context Database TemplateRepository URLMapper
+./wiki-example/src/LazyLines.hs:loadContext :: String -> IO Context
+./wiki-example/src/LazyLines.hs:loadContext path =
+./wiki-example/src/LazyLines.hs:       return $ Context (Database.fromConfig (confLookup "database" conf))
+./wiki-example/src/LazyLines.hs:wikiSession :: Context -> WikiRequest -> IO HTTPResponse
+./wiki-example/src/LazyLines.hs:wikiSession (Context db tmpl umap) req =
+./wiki-example/src/LazyLines.hs:           return (HTTPResponse pageContentType html)
+./wiki-example/src/LazyLines.hs:           return (HTTPResponse pageContentType html)
+./wiki-example/src/LazyLines.hs:           return (HTTPResponse pageContentType html)
+./wiki-example/src/LazyLines.hs:    pageContentType = textContentType "text/html" $ pageEncoding db

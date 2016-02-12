@@ -1,0 +1,790 @@
+The story so far
+これまでの話
+
+Previously we put together a DSL using the free monad and a corresponding interpreter using the cofree comonad.
+前の記事でfreeモナドを使ったDSLとcofreeコモナドを使ったDSLに対応したインタープリターを結びつけました。
+We had an ad-hoc interpreter for our DSL:
+DSLに対応したインタープリターを作りました。
+
+interpret :: Monad m => Int -> Int -> AdderT m r -> m r
+interpret limit count a = do
+  mr <- runFreeT a
+  case mr of
+    Pure r -> return r
+    Free (Add x k) ->
+      let
+        count' = x + count
+        test = count' <= limit
+        next = if test then count' else count
+      in
+        interpret limit next (k test)
+    Free (Clear k) ->
+      interpret limit 0 k
+    Free (Total k) ->
+      interpret limit count (k count)
+
+We also had an interpreter based on the cofree comonad that corresponds to the DSL:
+cofreeコモナドでDSLに対応したインタープリターも作りました。
+
+type CoAdder a = Cofree CoAdderF a
+
+mkCoAdder :: Int -> Int -> CoAdder (Int, Int)
+mkCoAdder limit count = coiter next start
+  where
+    next  = CoAdderF <$> coAdd <*> coClear <*> coTotal
+    start = (limit, count)
+
+coAdd :: (Int, Int) -> Int -> (Bool, (Int, Int))
+coAdd (limit, count) x = (test, (limit, next))
+  where
+    count' = count + x
+    test   = count' <= limit
+    next   = if test then count' else count
+
+coClear :: (Int, Int) -> (Int, Int)
+coClear (limit, _) = (limit, 0)
+
+coTotal :: (Int, Int) -> (Int, (Int, Int))
+coTotal (limit, count) = (count, (limit, count))
+
+Both of these work, but we can do better. The ad-hoc interpreter can be cleaned up by using monad transformers. 
+どちらも動きますが、もっと良くしたいと思います。インタープリターをモナドトランスフォーマーを使って洗練させたいと思います。
+It should be unsurprising - especially given the title of this post - that we can clean up the cofree comonad version of the interpreter using comonad transformers.
+驚くかもしれません。(特に記事のタイトルをみると一層) コモナドトランスフォーマーを使ってcofreeコモナドを使ったインタープリターを洗練させると思いきや。
+
+A monad transformers refresher
+モナドトランスフォーマーの再教育
+
+If you’re comfortable with monad transformers you can skip this. 
+モナドトランスフォーマーに親しければとばしてもかまいません。
+If you’re not yet comfortable with monad transformers this probably won’t help much.
+それほどモナドトランスフォーマーに親しくなければ、とても参考になるでしょう。
+A few people have found these links helpful:
+いく人かの人には下記のリンクが役に立つと思います。
+
+Monad Transformers Step by Step (PDF)
+The Greenhorn’s Guide to becoming a Monad Cowboy
+
+I’ll at least put in a token effort, and some of the examples and analogies will be reused when I get to comonad transformers, so it’s not all a waste.
+少なくとも形だけの努力なら、いくつかの例と類推はコモナドトランスフォーマーを理解するときに使えるでしょう。決して無駄ではありません。(訳がしっくりこない)
+If you’ve ready my brief overview of comonads you might recall my hand-wavy explanation of how monads are related to building up a value in a monadic context from a pure values.
+もし、すでに私のコモナドについての見解を知っていれば、モナドが普通の値からモナドの文脈に持ち上げられる関係の簡単な証明を思い出すでしょう。
+We might need to look at the Monad typeclass at the correct angle to see that.
+理解するにはモナドの型クラスを正しい角度で見る必要があります。
+
+class Monad m where
+  return    :: a -> m a
+  bind      :: (a -> m b) -> m a -> m b
+
+It shouldn’t be too much of stretch to see that return does this directly. 
+returnが直接的であるように見えるのは誇張ではないでしょう。
+If we think of m a as an intermediate step on the way to building up m b, bind can be viewed as a way to use a function from a pure value to a value in a monadic context to make that step.
+m aを m bを構築するための中間体と考えると、bindは普通の値からモナドの文脈の値へと作る仮定の関数としてとらえることができます。
+Throughout all of this, we are working with a single Monad. We will often want to write code that deals with more than one monad at the same time.
+全体を通して単一のモナド内で動きます。コードを書いているときにたまに、同時に1つ以上のモナドを扱いたい時があります。
+That is where monad transformers come into play. They “stack” monads on top of each other, via the lift function from the MonadTrans typeclass.
+そういうときにモナドトランスフォーマーが登場します。MonadTrans型クラスのlift関数を使い互いにモナドをスタックのてっぺんに積み上げます。
+
+class MonadTrans t where
+  lift :: m a -> t m a
+
+Every monad transformer is also a monad, so we’re again build up a value in a monadic context. 
+全てのモナドトランスフォーマーはモナドなのでなので、再度モナドの文脈に押し上げます。
+Now we can use monadic values from lower in the “stack” to do so, by “lifting” them to the context of the monad transformer.
+スタックの下にあるモナドの値を使うにはモナドトランスフォーマーの文脈に持ち上げます。
+This will probably make more sense after some examples.
+後述のサンプルでより分かるでしょう。
+
+State and StateT
+StateとStateT
+
+The State monad abstracts functions that transform a state value of a given type. 
+Stateモナドは与えられた型の値の状態を変更する関数です。
+It is a newtype wrapper around a particular form of a state transformation function:
+特定の形の状態を変更する関数をnewtypeでラップしたものです。
+
+newtype State s a = State { runState :: s -> (a, s) }
+
+The newtype is used so that we can provide a Monad instance. 
+このnewtypeの型はモナドのインスタンスを与えられて使います。
+At least for me, it also helps me keep my types lining up nicely and prevents various late-night-coding-induced misbehaviours.
+少なくとも私にとって、型をいい感じに保ってくれるのを助け、夜中のコーディング時に発生する不正行為を予防してくれます。
+We use return and bind to build up more involved state transformation functions, and we can use get / put / modify to query and manipulate the state in these functions:
+returnとbindを変換する関数の内部を構築するのに使用します。状態の問い合わせや操作にget / put modifyを使用します。
+
+get :: State s s
+put :: s -> State s ()
+modify :: (s -> s) -> State s ()
+
+These functions are captured in the MonadState s typeclass, which has instances available in all of the places that you’d expect.
+それらの関数はMonadState s 型クラスのメソッドです。(意訳)どこででも可能なインスタンスです。
+Once we’ve built up the state transformation function that we want, we can use runState / evalState / execState as our interpreters, 
+which run the state transformation function and provide either the return value, the final state, or both. 
+いったん状態変更可能な関数を構築したらrunState / evalState / execState をインタープリターとして使い、
+状態変更可能な関数を実行することで結果、最終状態、その両方のどれかを提供します。
+Note that evalState and execState can both be defined in terms of runState.
+runStateを使ってevalStateとexecStateは定義できます。
+
+evalState :: State s a -> s -> a
+execState :: State s a -> s -> s
+
+Where State works for pure computations, StateT does the same for monadic computations for a particular monad m:
+Stateは純粋な計算として働くがStateTは特定のモナド m にモナド上の計算として同様に働きます。
+
+newtype StateT s m a = StateT { runStateT :: s -> m (a, s) }
+
+get :: StateT s m s
+put :: s -> StateT s m ()
+modify :: (s -> s) -> StateT s m ()
+
+evalStateT :: StateT s m a -> s -> m a
+execStateT :: StateT s m a -> s -> m s
+
+We can write all of our code in terms of StateT, as we can use the Identity monad at the bottom of our stack to finish things off.
+Identityモナドをスタックの基底にすることで、StateTとして全てのコードは記述出来ます。
+In fact, we can define State in terms of StateT and Identity:
+実際StateはStateTとIdentityで定義できます。
+
+type State s = StateT s Identity
+
+runState :: State s -> s -> (a, s)
+runState sm = runIdentity . runStateT sm
+
+An example
+サンプル
+
+We used StateT stacked on top of our Adder monad in the helper function for findLimit in the last post:
+最後の記事のfindLimitの補助関数としてAdderモナドを上に積んでStateTを使います。
+
+  -- in findLimit
+  ...
+  r <- execStateT findLimit' 0
+  ...
+
+findLimit' :: StateT Int Adder ()
+findLimit' = do
+  -- add 1 to the total
+  r <- lift $ add 1
+  -- check for overflow
+  when r $ do
+    -- if no overflow, add to our state counter ...
+    modify (+ 1)
+    -- and continue
+    findLimit'
+
+This is a good example of using lift to build up the values in a monad stack and using the various domain specific functions to help interpret them.
+liftを使ってモナドスタックに値を持ち上げていたり、それらを解釈するのに特定の関数を使っているよいサンプルです。
+Inside of findLimit, we can make use of modify because StateT is on top of the stack.
+findLimit内ではmodifyを使えます。なぜなら、StateTがスタックのトップにあるからです。
+If we remember the type of add:
+addの型を覚えているでしょうか？
+
+add :: Int -> Adder Bool
+
+we can see that it’s not going to work in the StateT Int Adder stack that findLimit' is expecting.
+findLimit'で期待されているものはStateT Int Adderスタックでは働かないようにみえます。
+However, lift . add has type
+しかし、lift . add の型は
+
+lift . add :: MonadTrans t => Int -> t Adder Bool
+
+or in this case
+もしくはこの場合、
+
+lift . add :: Int -> StateT Int Adder Bool
+
+and so everything works out.
+なのでうまく動きます。
+While findLimit' has type
+findLimit' の型は下記です。
+
+StateT Int Adder ()
+
+we can see that execStateT findLimit' (0 :: Int) has type
+execStateT findLimit' (0 :: Int)の型は下記になります。
+
+Adder Int
+
+and so execStateT has allowed us to temporarily make use of an additional effect.
+execStateTは一時的に追加の作用を使うことを許しています。
+
+Reader and ReaderT
+
+The Reader monad abstracts functions that operate with a value of a given type as a context or environment. 
+Readerモナドは文脈や環境として与えられた値を操作する関数です。
+In this case it is a newtype wrapper around a simple function:
+このケースでは単純な関数をラップしたnewtype宣言を使用して定義しています。
+
+newtype Reader r a = Reader { runReader :: r -> a }
+
+and we use runReader to interpret a Reader monad value once we’re done building it up.
+いったん持ち上げたReaderモナドの値を解釈するにはrunReaderを使います。
+The MonadReader r typeclass captures the Reader specific functions, although for this post we’ll only be making us of ask:
+MoanadReader r 型クラスはReaderの関数を使えます。この記事ではaskのみ使用します。
+
+ask :: Reader r r 
+
+which returns the environment value.
+保持している値を返します。
+Just like with State, we can make use of Reader in a monad transformer stack with ReaderT:
+Stateと同じようにReaderにモナドトランスフォーマーのスタックを使ってReaderTを定義します。
+
+newtype ReaderT r m a = Reader { runReaderT :: r -> m a }
+
+ask :: ReaderT r m r
+
+and we can also define Reader in terms of ReaderT:
+ReaderTを使ってReaderを定義します。
+
+type Reader r = ReaderT r Identity
+
+runReader :: Reader r a -> a
+runReader = runIdentity . runReaderT
+
+Cleaning up the ad-hoc interpreter
+アドホックなインタープリターを洗練させる
+
+The ad-hoc interpreter is manually doing the work of a State monad for the count and a Reader monad for the limit.
+アドホックなインタープリターはStateモナドをcountとして、Readerモナドをlimitとして作用させます。
+Let us clean that up, using Reader over State:
+Stateモナドの乗ったReaderモナドを使って洗練させます。
+
+type Base m = ReaderT Int (StateT Int m)
+
+runBase :: Monad m => Int -> Int -> Base m r -> m r
+runBase limit count =
+  flip evalStateT count .
+  flip runReaderT limit
+  
+We have a helper function, interpret', which builds up a value of Base m r. 
+値をBase m rへ持ち上げるinterpret'を書きます。
+We have written the code for AdderT and the add/clear/total helpers so that they’re generic in the underlying monads. 
+前にAdderTと add/clear/totalの補助関数を書きました。(free_and_cofree.txt) それは既定のモナドにします。
+This is where that genericity pays off - we have deferred mentioning the underlying monad right up until the point 
+where we are interpreting our DSL, and so we can choose whatever monad we want.
+DSLを解釈している最中、 欲しいモナドを選ぶことができ、 その地点まで既定のモナドを持ち上げることを遅らせ、清算します。
+
+interpret' :: Monad m => AdderT (Base m) r -> Base m r
+interpret' a = do
+  mr <- runFreeT a
+  case mr of
+    Pure r -> return r
+    Free (Add x k) -> do
+      limit <- ask
+      count <- lift get
+      let count' = x + count
+      let test = count' <= limit
+      let next = if test then count' else count
+      lift . put $ next
+      interpret' (k test)
+    Free (Clear k) -> do
+      lift . put $ 0
+      interpret' k
+    Free (Total k) -> do
+      count <- lift get
+      interpret' (k count)
+      
+Since ReaderT is at the top of the stack in Base, we can use ask directly.
+ReaderTはBaseのスタックのトップにあるので直接askを使用することができます。
+We need to use lift whenever we deal with the state. 
+stateを扱うときはliftを使う必要があります。
+This transforms computations in the StateT Int m monad into computations in the ReaderT Int (StateT Int m) monad, which is what we are working in.
+処理の中でStateT Int m モナドを ReaderT Int (StateT Int m)に変形します。
+We can combine both of these to get our cleaned up interpreter:
+洗練されたインタープリターでそれらを結合することができます。
+
+interpret :: Monad m => Int -> Int -> AdderT (Base m) r -> m r
+interpret limit count =
+  runBase limit count .
+  interpret'
+  
+At this point we’re no longer explicitly threading a read-only environment value and an updatable state value through our computation and instead we access that functionality through a well-defined interface. 
+これによって、読み取り専用の値と更新可能な値を明示的に混ぜるのではなくインターフェースとして定義されたものを使って操作出来るようになります。
+Things are nicer, at least in the realm of the ad-hoc version of the interpreter.
+少なくとも、アドホックなインタープリターよりはましです。
+
+transformers style and mtl style
+
+There are different schools of thought on whether to use transformers style monad transformers 
+- in which you have concrete types and you use explicit lifts - or mtl style monad transformers - in which you use typeclass constraints and don’t have to lift anything.
+モナドトランスフォーマーには型を作り明示的にliftするtransformsスタイルと型クラス制約を使いliftを使わないmtlスタイルといった異なる流派があります。
+
+I lean slightly towards working with mtl style transformers, since I like the ease with which I can use it for prototyping and putting together pieces that I might reuse 
+- even if the reuse is just between now and the next refactoring. Anyhow.
+私は、mtlスタイルのトランスフォーマーを使うことに少しむいています。プロトタイプ的に使うのにも再利用時に集めて来るのも簡単です。
+リファクタリングと今の間の再利用でも大丈夫です。
+With transformers your code is explicit, and you can have multiple transformers of the same type in your stack.
+transformersスタイルのコードは明示的なため、同じ型をスタックに積むことができます。
+With mtl you can’t have multiple transformers of the same type, but you can easily write code that is decoupled from the concrete stack you end up using.
+mtlスタイルでは同じ型を持つことができません。しかし、使うときに積み上げたスタックから簡単に分離するコードを書くことができます。
+This only involves a change to interpret':
+少し、interpret'に変更を加えます。
+
+type Base m = ReaderT Int (StateT Int m)
+
+runBase :: Monad m => Int -> Int -> Base m r -> m r
+runBase limit count =
+  flip evalStateT count .
+  flip runReaderT limit
+
+interpret' :: (MonadReader Int m, MonadState Int m) => AdderT m r -> m r
+interpret' a = do
+  mr <- runFreeT a
+  case mr of
+    Pure r -> return r
+    Free (Add x k) -> do
+      limit <- ask
+      count <- get
+      let count' = x + count
+      let test = count' <= limit
+      let next = if test then count' else count
+      put next
+      interpret' (k test)
+    Free (Clear k) -> do
+      put 0
+      interpret' k
+    Free (Total k) -> do
+      count <- get
+      interpret' (k count)
+
+interpret :: (Monad m) => Int -> Int -> AdderT (Base m) r -> m r
+interpret limit count =
+  runBase limit count .
+  interpret'
+
+We are using typeclass constraints to assert that the required functionality is in the monad transformer stack. 
+モナドトランスフォーマーのスタックの中に要求された機能を持つものが存在することを確認するために型クラス制約を使います。
+We then use the functionality - ask, get, and put - directly, as it is all available from the typeclasses we mentioned in our typeclass constraints.
+ask,get,putを直接使います。型制約を記述することで型クラスの機能が使えるからです。
+This means we can change the order of the transformers in the stack without having to change interpret'
+interpret'の変更無しにスタックの順序を変更することができるということです。
+
+interpret1 :: Monad m => Int -> Int -> AdderT (ReaderT Int (StateT Int m)) r -> m r
+interpret1 limit count =
+  flip runStateT count .
+  flip runReaderT limit .
+  interpret'
+
+interpret2 :: Monad m => Int -> Int -> AdderT (StateT Int (ReaderT Int m)) r -> m r
+interpret2 limit count =
+  flip runReaderT limit .
+  flip runStateT count .
+  interpret'
+
+It also means we can factor out bits of the functionality, and limit the constraints to just what is required for what we’re working on:
+もう少し機能を分解出来ます。そして、ちょうど取り組んでいることが要求されるように制約を制限します。
+
+clearCount :: MonadState Int m -> m ()
+clearCount = put 0
+
+Limiting the scope can mean that we can reuse the functionality in more places, and that our code can’t make sneaky use of the other transformers in the stack.
+スコープを制限するということは、色々なところで再利用ができ、コードを別のスタックからこそこそと使わなくてもいいということです。
+It is worth noting that we can get these benefits from transformers style code if we want to, just like we can have multiple components to our Reader and State monads in mtl style. 
+transformersスタイルで書いた場合はこの恩恵は得られないでしょう。mtlスタイルでReaderモナドとStateモナドを構成することができます。
+There is much more to say about the two styles, and about the tools and techniques that make working with monad transformers more pleasant - including the mmorph library and several different parts of lens. 
+さらに2つのスタイルについて言うことがあります。よりモナドトランスフォーマーを使いやすくするツールとテクニックについてです。mmorphライブラリといくつか異なる部分のあるlensです。
+Going into further details on these is probably a post for another day.
+詳細は別の記事で後日話すでしょう。
+
+
+Comonad transformers
+
+In contrast to monads, comonads are about converting values in a comonadic context to pure values. 
+モナドとは対照的にコモナドはコモナドの文脈ににある値から普通の値に変換します。
+I tend to think of this is “tearing down” a value in a comonadic context where monads are “building up” a value in a monadic context, however that’s perhaps not the best metaphor.
+コモナドの文脈から分解する、モナドの文脈に持ち上げるといいますが、これはいいたとえではないかもしれません。
+
+class Comonad w where
+  extract   :: w a -> a
+  extend    :: (w a -> b) -> w a -> w b
+
+Recall that extract is the dual to return and extend is the dual to bind. 
+extractがreturnに対応し、extendがbindに対応しています。
+Given that, we probably won’t find it too hard to view extract as something that converts from values in a comonad context to pure values directly, while extend helps us to do something similar in stages.
+extractがコモナドの文脈から普通の値に変換するというのを理解するのが難しくないなら、extendは同様に助けてくれます。
+That pattern continues with lower from ComonadTrans:
+このパターンはComonadTransのlowerに続きます。
+
+class ComonadTrans t where
+  lower :: t w a -> w a
+
+Every comonad transformer is also a comonad, and we can see that lower is helping us step down the stack to get closer to a pure value.
+全てのコモナドトランスフォーマーはコモナドです。そして、lowerはスタックを下げて普通の値に近付けてくれます。
+Let’s look at a few of these things so we can get a bit more concrete.
+もう少し具体的に、これらの事のいくつかを見てみましょう。
+
+
+Store and StoreT
+
+The Store comonad is related to the State monad, but does things a bit differently.
+StoreコモナドはStateモナドに関係しているが少し異なります。
+We store a function and an initial value:
+初期値と関数を蓄えます。
+
+data Store s a = Store (s -> a) s
+
+As an aside, if we squint at (and uncurry) State and Store we might see them as combinations of (-> s) and (, s) but in different orders. 
+余段ですが、StateとStoreを見てみると(そしてuncurryします)、(-> s) と (, s) の結合がみられますが、順序が異なっています。
+There are volumes more to say about that, involving the relationship between adjunctions, monads, and comonads. 
+もうっと言いたいことがありますが、モナドとコモナドの結合に関係することが含まれています。
+If you’re interested to know more, you should ask in the reddit comments - 
+there are folks in that community that are incredibly well versed in explaining those links and the various interesting avenues that branch off from there.
+もしもっと詳しく知りたければ、redditで尋ねてみればいいでしょう。
+それらに関連することを節めするのに驚くほど詳しい住人がいて、そこからさらに多くの興味深い道が枝分かれしています。
+We can use fmap to modify the function via composition:
+fmapを使って合成の方法を定義しましょう。
+
+instance Functor (Store s) where
+  fmap f (Store g s) = Store (f . g) s
+
+The extract function applies the stored function to the stored value, and duplicate turns the a into a Store s a:
+extract関数は蓄えていた値を蓄えていた関数に適用し、duplicateはaをStore s aにします。
+
+instance Comonad (Store s) where
+  extract (Store f s) = f s
+  duplicate (Store f s) = Store (Store f) s
+
+We have a number of helper functions - also accessible from the ComonadStore s typeclass - including:
+ComonadStore s 型クラスのためのいくつかの補助関数を定義します。
+
+pos  :: Store s a -> s
+seek :: s -> Store s a -> Store s a
+peek :: s -> Store s a -> a
+
+where
+
+    pos gets the stored value
+    pos 蓄えている値を取得します。
+    seek sets the stored value, and
+    seek 値をセットします
+    peek applies the stored function to a new value
+    peek 蓄えている関数に新しい値を適用します
+
+We’ll be making use of pos and seek to maintain state in our interpreter.
+インタープリターで状態を維持するのにposとseekを使用します。
+In the State monad, get and put were able to return their values in the State monad, since we were building up a value in a monadic context.
+Stateモナドでは、getとputが自身の値を返すことが出来ました。なので、値をモナドの文脈に持ち上げられました。
+In the Store comonad, we’re tearing things down and so pos and seek look and behave like regular getter and setter functions - because that’s exactly what they are.
+Storeコモナドは、分解する関数で、posとseekはゲッターとセッターみみえ、実際にそのように振舞います。
+There is a runStore function:
+下記がrunStore関数です。
+runStore :: Store s a -> ((s -> a), s)
+
+but it’s not as exciting as runState.
+runStateほどエキサイティングではありません。
+In the State monad, we were busily building up a state transformation function, and runState was the interpreter that tore it down into a pure value.
+Stateモナドでは状態変更する関数を構築し、runStateが純粋な値に分解するインタープリターでした。
+In the Store comonad, we are doing the tearing down with the comonad, but we need something to tear down in the first place. 
+Storeコモナドではコモナドで分解しますが、分解する最初の場所が必要です。
+For that reason, where we were interested in the accessor functions inside the newtype wrappers for the monads, 
+we are are more interested in the constructors for the comonads- since the constructors give our context a starting point.
+理由は、モナドではnewtypeのラッパー内のアクセス関数たちに関心がありました。
+コモナドではコンストラクターにより関心があるので、コンストラクターが文脈の起点を提供します。
+This is also handy because we are making use of these comonad transformers in an interpreter, and that interpreter is meant to run forever. 
+これは便利であるともいえます。なぜならインタープリター内のコモナドトランスフォーマーを使うからです。そして、インタープリターは永久に実行出来ます。
+We could use runStore after that, for a sense of completeness, but I’ll omit it here.
+runStoreは完結の意味で使いますが、ここでは省略します。
+As we might expect, there is a StoreT comonad transformer which corresponds with Store:
+期待するように、StoreTコモナドトランスフォーマーはStoreに対応します。
+
+data StoreT s w a = StoreT (w (s -> a)) a
+
+pos  :: StoreT s w a -> s
+seek :: s -> StoreT s w a -> StoreT s w a
+peek :: Comonad w => s -> StoreT s w a -> a
+
+and we can use the Identity comonad to define the Store in terms of StoreT.
+Identityコモナドを使うことでStoreTをStoreとして定義できます。
+
+Env and EnvT
+
+The last piece we’ll need is the Env comonad:
+必要な最後のピースはEnvコモナドです。
+
+data Env e a = Env e a
+
+which is similar to the Reader monad in its functionality.
+帰納的にはReaderモナドに似ています。
+Where Reader was a function from e to a, Env is the pair of the two values.
+Readerはeからaを返す関数で、Envもその2つの値のペアです。
+We have a helper function, also available in ComonadEnv e:
+ComonadEnv eの補助関数があります。
+
+ask :: Env e a -> e
+
+that returns the environment value, and the expected transformer version:
+環境の値を返します。トランスフォーマーの場合は下記です
+
+data EnvT e w a = EnvT e (w a)
+
+ask :: EnvT e w a -> e
+
+Cleaning up our interpreter
+インタープリターを洗練させる
+
+With all of that in hand, let us clean up the cofree-based interpreter.
+全て手に入ったので、cofreeベースのインタープリターを洗練させましょう。
+We’re adding in a transformer stack, so we’ll switch from Cofree
+トランスフォーマーのスタックに追加するのでCofreeを切り替えましょう。
+
+data Cofree f a = a :< f (Cofree f a)
+
+to CofreeT
+CofreeTに変換します。
+
+data CofreeF f a b = a :< Cofree f b
+data CofreeT f w a = CoFreeT { runCofreeT :: w (CofreeF f a (CofreeT f w a)) }
+
+We’re making use of count as a kind of state, and limit as a kind of environment:
+countを状態のとして使い、limitを環境として使用します。
+
+type Base a = StoreT Int (EnvT Int Identity) a
+
+In the case of our interpreter, we have:
+このケースのインタープリターを定義します。
+
+type CoAdderT w a = CofreeT CoAdderF w a
+
+and then we combine the two to get:
+2つを結合します。
+
+type CoAdder a = CoAdderT Base a
+
+Now we just need to switch to the comonad transformer version of coiter - called coiterT:
+コモナドトランスフォーマーの場合のcoiter(coiterT)に切り替える必要があります。
+
+coiterT :: (Functor f, Comonad w) => (w a -> f (w a)) -> w a -> CofreeT f w a
+
+and update the value of start.
+そして、値の起点を更新します。
+
+mkCoAdder :: Int -> Int -> CoAdder ()
+mkCoAdder limit count = coiterT next start
+  where
+    next  = CoAdderF <$> coAdd <*> coClear <*> coTotal
+    start = flip StoreT count . EnvT limit . Identity $ const ()
+
+Now coAdd, coClear and coTotal will change from having an argument of (Int, Int) to having an argument of Base (). 
+coAdd, coClear, coTotalの引数を(Int, Int)からBase () に変更します。
+We’ll be a little more general and use Base a to keep the code as general as we can.
+Base a を使ってもう少し汎用的にします。
+We have StoreT at the top of our comonad transformer stack, and coClear and coTotal only make use of the StoreT part of the stack. 
+StoreTがコモナドトランスフォーマーのスタックのトップにあります。そして、coTotalだけが、StoreTのスタックで使えます。
+This means we can use the seek and pos functions directly:
+これはseekとposを直接使えるということを意味します。
+
+coClear :: Base a -> Base a
+coClear = seek 0
+
+coTotal :: Base a -> (Int, Base a)
+coTotal w = (pos w, w)
+
+As coAdd makes use of EnvT, we need to use lower to get access to the EnvT:
+EnvTを使ったcoAddにとってEnvTにアクセスするにはlowerが必要です。
+
+coAdd :: Base a -> Int -> (Bool, Base a)
+coAdd w x = (test, seek next w)
+  where
+    count  = pos  w
+    limit  = ask . lower $ w
+    count' = count + x
+    test   = count' <= limit
+    next   = if test then count' else count
+
+Party on, Wayne.
+つづきます。
+
+The hard way
+
+Things get a little trickier if we change the order of the transformer stack.
+トランスフォーマーのスタックの順序を変える方法はトリッキーです。
+It is straight-forward to update the definition of Base and change the way we construct start:
+簡単な方法ではBaseの定義を更新し、起点の構築方法を変更します。
+
+type Base a       = EnvT Int (StoreT Int Identity) a
+type CoAdderT w a = CofreeT CoAdderF w a
+type CoAdder a    = CoAdderT Base a
+
+mkCoAdder :: Int -> Int -> CoAdder ()
+mkCoAdder limit count =
+    coiterT next start
+  where
+    next  = CoAdderF <$> coAdd <*> coClear <*> coTotal
+    start = EnvT limit . flip StoreT count . Identity $ const ()
+
+We need some fancy footwork to update the value in the StoreT, since seek s is defined as peek s . duplicate:
+seek s は peek s . duplicate と定義されているので、StoreTの値を更新するには巧みな処理が必要です。
+
+coClear :: Base a -> Base a
+coClear = peek 0 . lower . duplicate
+
+That might not look all that fancy, but it was one the trickiest things I had to work out to put this post together.
+巧みにはみえないかもしれませんが、  この記事の中でも最もトリッキーな方法です。
+Getting access to pos requires that we lower into the StoreT first:
+posにアクセスするために最初にStoreTにlowerを使って内部に入ります。
+
+coTotal :: Base a -> (Int, Base a)
+coTotal w = ((pos . lower $ w), w)
+
+and we can use ask directly since EnvT is on the top of our stack:
+そして、EntTがスタックのトップにあるので、直接使えます。
+
+coAdd :: Base a -> Int -> (Bool, Base a)
+coAdd w x = (test, peek next . lower . duplicate $ w)
+  where
+    count  = pos . lower $ w
+    limit  = ask w
+    count' = count + x
+    test   = count' <= limit
+    next   = if test then count' else count
+
+Party on, Garth.
+つづきます。
+
+From transformers style to mtl style
+
+What we have so far demonstrates the use transformers style comonad transformers. 
+これまでのデモではtransformersスタイルのコモナドトランスフォーマーを使っていました。
+It’s worth showing off the differences between that and mtl style comonad transformers.
+mtlスタイルのコモナドトランスフォーマーとの違いを際立たせるのはよいことだと思います。
+We’ll revert to StoreT over EnvT for this.
+ここではEnvTの上にStoreTをのせます。
+With StoreT at the top of the stack, the cases for coClear and coTotal don’t change except for the type signatures:
+StoreTがスタックのトップなので、coClearとcoTotalは型以外は変える必要はありません。
+
+coClear :: ComonadStore Int w => w a -> w a
+coClear = seek 0
+
+coTotal :: ComonadStore Int w => w a -> (Int, w a)
+coTotal w = (pos w, w)
+
+For coAdd we make a similar change to the type signature. 
+coAddは同様に型の変更をします。
+We also drop the explicit lower, since the ComonadEnv constraint makes ask available to us no matter where it is in the stack:
+ComonadEnv制約のおかげでスタックのどこにあってもaskが使えるので、lowerを削除できます。
+
+coAdd :: (ComonadEnv Int w, ComonadStore Int w) => w a -> Int -> (Bool, w a)
+coAdd w x = (test, seek next w)
+  where
+    count  = pos w
+    limit  = ask w
+    count' = count + x
+    test   = count' <= limit
+    next   = if test then count' else count
+
+The code for mkCoadder doesn’t change at all. 
+mkCoadderのコードは全く変更しません。
+
+More importantly, the coClear, coTotal and coAdd methods don’t change even if we change the order of the transformer stack.
+重要なことは、coClear, coTotal, coAddはトランスフォーマーのスタックの順序が変わっても変える必要はありません。
+
+Both
+
+type Base a       = StoreT Int (EnvT Int Identity) a
+type CoAdderT w a = CofreeT CoAdderF w a
+type CoAdder a    = CoAdderT Base a
+
+mkCoAdder :: Int -> Int -> CoAdder ()
+mkCoAdder limit count =
+    coiterT next start
+  where
+    next  = CoAdderF <$> coAdd <*> coClear <*> coTotal
+    start = flip StoreT count . EnvT limit . Identity $ const ()
+
+and
+
+type Base a       = EnvT Int (StoreT Int Identity) a
+type CoAdderT w a = CofreeT CoAdderF w a
+type CoAdder a    = CoAdderT Base a
+
+mkCoAdder :: Int -> Int -> CoAdder ()
+mkCoAdder limit count =
+    coiterT next start
+  where
+    next  = CoAdderF <$> coAdd <*> coClear <*> coTotal
+    start = EnvT limit . flip StoreT count . Identity $ const ()
+
+will work without adjustments.
+どちらも接続するものなしで動きます。
+
+
+Pairing in the presence of transformers
+トランスフォーマー下でのPairing
+
+So far we’ve been using the Pairing between Cofree and Free:
+CofreeとFreeとともにPairingを使ってきました。
+
+instance Pairing f g => Pairing (Cofree f) (Free g) where
+  pair p (a :< _ ) (Pure x)  = p a x
+  pair p (_ :< fs) (Free gs) = pair (pair p) fs gs
+
+but now we’re going to need something which can handle the transformer stacks.
+トランスフォーマーのスタックを操作する必要がでてきました。
+We make use of the pure value at the root of our cofree tree with extract:
+extractによってcofreeの頂点にある普通の値を使います。
+
+extract :: CofreeT f w a -> a
+
+and thanks to the ComonadCofree typeclass we can also access the rest of the tree with unwrap:
+ComonadCofree型クラスのおかげで、unwrapで木の残りの部分にアクセスできます。
+
+unwrap :: Comonad w => CofreeT f w a -> f (w a)
+
+These are used in pairEffect:
+pairEffect内で使われています。
+
+pairEffect :: (Pairing f g, Comonad w, Monad m)
+           => (a -> b -> r) -> CofreeT f w a -> FreeT g m b -> m r
+pairEffect p s c = do
+  mb <- runFreeT c
+  case mb of
+    Pure x -> return $ p (extract s) x
+    Free gs -> pair (pairEffect p) (unwrap s) gs
+
+which interleaves handling effects and pairing DSL commands with interpreter handlers.
+作用の操作とインタープリターによるDSLコモナドの接合を交互におこないます。
+This is handy for the cases where we will continually be producing DSL commands, and so will never get to the Pure case in the pairing. 
+DSLコモナドの生成を継続的に行うケースでは使いやすく、なので、pairingではPureを取得するケースは存在しません。
+We need that if we try to write a console based Adder:
+コンソールベースのAdderを試しに書いてみましょう。
+
+consoleAdder' :: MonadIO m => AdderT m ()
+consoleAdder' = do
+    l <- liftIO getLine
+    case words l of
+      ["add", x] -> add (read x) >>= \b ->
+        output $ "add result: " ++ show b
+      ["clear"] -> clear
+      ["total"] -> total >>= \t ->
+        output $ "total result: " ++ show t
+      _ -> output prompt
+  where
+   output = liftIO . putStrLn
+   prompt = unlines [
+            "Commands:"
+          , "  add [int]"
+          , "  clear"
+          , "  total"
+          ]
+
+consoleAdder :: MonadIO m => AdderT m ()
+consoleAdder = forever consoleAdder'
+
+We can use pairEffect to couple this with our comonad transformer version of mkCoAdder:
+コモナドトランスフォーマーのmkCoAdderと合わせてpairEffectが使えます。
+
+testConsole :: IO ()
+testConsole = pairEffect (\_ r -> r) (mkCoAdder 10 0) consoleAdder
+
+although we could just as easily have used a pure version of mkCoAdder stacked on top of the Identity comonad and pairEffect would have continued to work.
+トップにIdentityコモナドがのっている普通のmkCoAdderが使いやすいく、pairEffectも継続して働くかもしれませんが。
+
+
+Conclusion
+
+We’ve now factored out the state and environment from the interpreter, but there are still aspects of both the DSL and the interpreter which are more strongly coupled than they need to be.
+インタープリターから状態と環境を分解しましたが、望んでいるよりも強力にDSLとインタープリターが結びついているという面があります。
+We’ll start to deal with this in the next post, where we’ll use coproducts to break out the orthogonal parts of the the DSL and products to make a similar change to the interpreter. 
+次の記事からcoproductsを使いDSLとの直行を破り、インタープリターの時のような変化を生み出すことを扱っていきます。
+After that we’ll have a deeper look at making use of various effects in conjunction with free and cofree.
+freeとcofreeをつなぎ多くの作用を使うことを深くみていきます。

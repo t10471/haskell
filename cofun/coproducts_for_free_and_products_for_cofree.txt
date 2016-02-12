@@ -1,0 +1,408 @@
+Coproducts for free monads
+freeモナドの余積
+
+In the last two posts, we have built a DSL from a free monad and the corresponding interpreter from a cofree comonad and cleaned up the interpreter with comonad transformers.
+前の2つの記事で、freeモナドでDSLを作り、cofreeコモナドから対応するインタープリターを作り、そして、コモナドトランスフォーマーでインタープリターを洗練させました。
+The comonad transformers helped to factor out common concerns - in this case, passing in configuration and handling state.
+コモナドトランスフォーマーは共通の関心ごとを分解するのを助けてくれます。このケースでは設定の受け渡しと状態の管理です。
+We can separate out our concerns even further than this.
+さらに関心ごとを分けていくことが可能です。
+The underlying functor for our DSL is
+DSLの基底のfunctorか下記です。
+
+data AdderF k =
+    Add Int (Bool -> k)
+  | Clear k
+  | Total (Int -> k)
+
+You might have noticed that the three constructors are independent of one another with respect to the Functor instance and the free monad. 
+3つのコンストラクターがFunctorのインスタンスとして、Freeモナドとして互いに独立しているということに気が付いていると思います。
+You might also have read Data types a la carte.
+Data types a la carteを呼んでいるとい思いますが。
+As an aside, if you haven’t read ‘Data types a la carte’ before you should give it a go. 
+それはさておき、もし、Data types a la carteを呼んでいないなら、先に読むべきです。
+It’s really well written, and if you’ve followed the series up to this point then you’re probably ready for it. 
+大変よく書かれており、もしこのシリーズをその点で探求するなら、準備が出来ていることでしょう。
+I tried to read it very early on in my Haskell journey and ended up slowly backing away, but I’m glad I doubled back around to it eventually.
+私のHaskellの旅の早い段階で読み始めましたが、戻ってくるのは遅くなりました。しかし、最後には、倍になってかえってきたことがうれしく思っています。
+Anyhow.
+なにはともあれ。
+We can break the independent parts out:
+独立した部分を抜き出します。
+
+data AddF k = Add Int (Bool -> k)
+
+data ClearF k = Clear k
+
+data TotalF k = Total (Int -> k)
+
+and we can write Functor instances for these:
+そして、Functorのインスタンスを記述します。
+
+instance Functor AddF where
+  fmap f (Add x k) = Add x (f . k)
+
+instance Functor ClearF where
+  fmap f (Clear k) = Clear (f k)
+
+instance Functor TotalF where
+  fmap f (Total k) = Total (f . k)
+
+We can now recover AdderF by using Sum, which makes a Functor from the sum of two other Functors.
+2つのFunctorの合成になっているFunctorのSumを使ってAdderFを再定義します。
+The relevant bits of Sum are
+Sumに関するものたちです。
+
+data Sum f g a = InL (f a) | InR (g a)
+
+instance (Functor f, Functor g) => Functor (Sum f g) where
+  fmap f (InL x) = InL (fmap f x)
+  fmap f (InR x) = InR (fmap f x)
+
+and we end up with
+そして、下記になります。
+
+{-# LANGUAGE TypeOperators #-}
+
+-- we introduce a type operator to match "Data types a la carte" and Dan Piponi's post on free and cofree
+-- Data types a la carteとDan Piponiのfree and cofreeの記事と型演算子を合わせます
+type f :+: g = Sum f g
+
+type AdderF = AddF :+: ClearF :+: TotalF
+
+which will behave in the same manner the old AdderF as far as the Functor instance - and hence the free monad - is concerned.
+Functorのインスタントして古いAdderFと同じように振舞います。(Freeモナドとしても)
+
+Classier coproducts
+余積なクラス
+
+With some help from the typeclass machinery introduced in “Data types a la carte”, we can make our combinators more flexible.
+Data types a la carteで紹介されている型クラス機構の助けにより、柔軟なコンビネーターを作れます。
+The relevant machinery is as follows:
+関連する機構は下記です
+
+class (Functor sub, Functor sup) => sub :<: sup where
+  inj :: sub a -> sup a
+
+instance Functor f => f :<: f where
+  inj = id
+
+instance (Functor f, Functor g) => f :<: (f :+: g) where
+  inj = InL
+
+instance (Functor f, Functor g, Functor h, f :<: g) => f :<: (h :+: g) where
+  inj = InR . inj
+
+This allows us to set up a constraint f :<: g, which asserts that f is somewhere in the sum of functors g. 
+fがファンクターgの合成の何処かにいるということを保証する f:<: g 制約を使用することが出来ます。
+Where that constraint holds we can also convert an f into a g with inj.
+制約を記述することでgにinjを適用しfに変換することができます。
+As an aside, Phil Wadler noted that the above machinery is asymmetric - which means that while
+Phil Wadlerは上記の機構は非対称だと言っています。
+
+f :<: d :+: e :+: f :+: g
+is fine
+これはokですが、
+
+f :<: d :+: (e :+: f) :+: g
+is not.
+はだめです。
+
+There are a few solutions posted in the comments section of that post. 
+その記事のコメント欄に投稿されたいくつかの解決策があります。
+I’m not sure what the current best practice is on that front. 
+前にあるのが現在の最適な方法なのか確信がありません。
+I’ll be looking into it later, but if anyone has any pointers or thoughts on the topic I’d love to hear about it.
+後で見ていきますが、考えや指摘があれば、耳を傾けたいと思います。
+The above machine is fine for this post, as long as we’re reasonably careful.
+適度に慎重に考えて、上記の機構はこの記事においては素晴らしいです。
+With the new tool in the toolbox, we can now do the following:
+ツールボックスから新しいツールを取り出し、下記の定義を行います。
+
+add :: (MonadFree f m, AddF :<: f) => Int -> m Bool
+add x = liftF . inj $ Add x id
+
+clear :: (MonadFree f m, ClearF :<: f) => m ()
+clear = liftF . inj $ Clear ()
+
+total :: (MonadFree f m, TotalF :<: f) => m Int
+total = liftF . inj $ Total id
+
+These can be put in separate modules and imported as needed by client code.
+それらは別々のモジュールに置くことが出来、クライアントが必要なものだけインポートすることが出来ます。
+That’s probably not so impressive in this case. 
+このケースのように感動的ではないかもしれませんが。
+As a more impressive example, we could build up separate DSLs for authentication, database access and logging, 
+and then mix and match to get whatever custom combination we needed, with the ability to make use of any code we’d built up on top of the individual DSLs (or combinations of those DSLs).
+より感動的な例として、認証、データベースアクセス、ロギングといったDSLを別々に構築し、それを混ぜ合わせ必要なものを独自に結合することができ、
+個々のDSL（またはそれらのDSLの組み合わせ）の上に構築された任意のコードを利用する能力を持ちます。
+To see how this looks, we can update findLimit to work in a larger number of contexts:
+下記を見てください。findLimitを多くの文脈で働くように更新することが出来ます。
+
+findLimit :: (MonadFree f m, AddF :<: f, ClearF :<: f, TotalF :<: f) => m Int
+findLimit = do
+   -- capture the old count
+   t <- total
+   -- clear the count and the state
+   clear
+   r <- execStateT findLimit' 0
+   -- restore the old count
+   clear
+   _ <- add t
+   return r
+
+findLimit' :: (MonadFree f m, AddF :<: f) => StateT Int m ()
+findLimit' = do
+  r <- lift $ add 1
+  when r $ do
+    modify (+ 1)
+    findLimit'
+
+While it looks pretty similar to how it did before, we can now use findLimit with a free monad that has additional components in its underlying functor.
+以前のものと似ているので、ファンクターを基底とした追加のコンポーネントであるフリーモナドをfindLimitと一緒に使います。
+We could also have broken things up further, with
+さらに進めていきます。
+
+reset :: (MonadFree f m, ClearF :<: f, TotalF :<: f) => m Int
+reset = do
+   -- capture the old count
+   t <- total
+   -- clear the count and the state
+   clear
+   return t
+
+and
+と
+
+restore :: (MonadFree f m, AddF :<: f, ClearF :<: f) => Int -> m ()
+restore = do
+   -- restore the old count
+   clear
+   _ <- add t
+   return ()
+
+Restricting our types down to just the things that we need is great - it provides more info about what the functions can and cannot do, 
+and it means that there are less moving parts and so less ways to write the functions incorrectly
+必要なものだけに型を制限出来るというのは素晴らしいです。関数が何が出来て何が出来ないのかを提供するからです。
+そして、可動部が少なく間違った関数を書く方法が少ないという意味です。
+
+Products for cofree comonads
+cofreeコモナドの直積
+
+That’s all well and good for the DSL, but we now need to update our interpreter to work with it.
+DSLについてはいいのですが、一緒に使うインタープリターについても更新する必要があります。
+Remember that we had an underlying functor for our interpreter:
+インタプリターの基底にはファンクターがあったことを思い出してください。
+
+data CoAdderF k = CoAdderF {
+    addH   :: Int -> (Bool,k)
+  , clearH :: k
+  , totalH :: (Int,k)
+  }
+
+and a pairing between our DSL and interpreter functors
+そして、DSLとインタプリターのファンクターに対応がありました。
+We can factor those out into independent pieces as well.
+独立した部品に分解することが出来ました。
+CoAdderF gets broken in a similar manner to what we did with AdderF:
+AdderFを作ったのと同じ方法ｄCoAdderFを作っていきます。
+
+data CoAddF k = CoAdd (Int -> (Bool, k))
+
+data CoClearF k = CoClear k
+
+data CoTotalF k = CoTotal (Int, k)
+
+and we can easily make the corresponding Functor instances:
+対応するFunctorのインスタンスは館t何に作れます。
+
+instance Functor CoAddF where
+  fmap f (CoAdd a) = CoAdd (fmap (fmap f) a)
+
+instance Functor CoClearF where
+  fmap f (CoClear k) = CoClear (f k)
+
+instance Functor CoTotalF where
+  fmap f (CoTotal t) = CoTotal (fmap f t)
+
+In the same way that we used the Sum to recover AdderF, we can use Product to recover CoAdderF.
+Sumを使ってAdderFを作りなおしたように、Productを使ってCoAdderFを作りなおせます。
+The relevant bits of Product are
+Productの構成です。
+
+data Product f g a = Pair (f a) (g a)
+
+instance (Functor f, Functor g) => Functor (Product f g) where
+  fmap h (Pair f g) = Pair (fmap h f) (fmap h g)
+
+which gives us
+上記より、下記の定義になります。
+
+{-# LANGUAGE TypeOperators #-}
+
+-- we introduce a type operator to match "Data types a la carte" and Dan Piponi's post on free and cofree
+type f :*: g = Product f g
+
+type CoAdderF = CoAddF :*: CoClearF :*: CoTotalF
+
+Again, the new version of CoAdderF will behave in the same way as the old version as far as we’re concerned.
+再度、新しいCOAdderFは古いヴァージョンと同じように振舞います。
+Our old interpreter functions had types:
+古いインタープリターは下記です
+
+coAdd   :: (ComonadEnv Int w, ComonadStore Int w) => w a -> Int -> (Bool, w a)
+coClear :: ComonadStore Int w => w a -> w a
+coTotal :: ComonadStore Int w => w a -> (Int, w a)
+
+but the new ones have a constructor wrapping up most of the details
+しかし、新しい方は詳細をコンストラクターが覆っています。
+
+coAdd   :: (ComonadEnv Int w, ComonadStore Int w) => w a -> CoAddF (w a)
+coClear :: ComonadStore Int w => w a -> CoClearF (w a)
+coTotal :: ComonadStore Int w => w a -> CoTotalF(w a)
+
+Aside from the changes associated with those new constructors, the implementations don’t change much:
+新しいコンストラクターと結びついた変更を除いては、実装はほとんど変わりません。
+
+coAdd :: (ComonadEnv Int w, ComonadStore Int w) => w a -> CoAddF (w a)
+coAdd w = CoAdd $ \x ->
+  let
+    count = pos w
+    limit = ask w
+    count' = count + x
+    test = count' <= limit
+    next = if test then count' else count
+  in
+    (test, seek next w)
+
+coClear :: ComonadStore Int w => w a -> CoClearF (w a)
+coClear = CoClear . seek 0
+
+coTotal :: ComonadStore Int w => w a -> CoTotalF (w a)
+coTotal w = CoTotal (pos w, w)
+
+Just like the components of our DSL, the components of the interpreter can all be placed in different modules and mixed and matched as we like.
+DSLのコンポーネントと同様にインタープリターのコンポーネントも異なるモジュールに配置出来、好きなように選んで混ぜ合わせることが出来ます。
+We just need something to stitch these together.
+それらを一緒に合わせるものが必要です。
+Since coiter takes a function a -> f a and coiterT takes a function w a -> f (w a), 
+we should be able to do our stitching in terms of a -> f a for the various components and have it work for either coiter or coiterT.
+coiterは a -> f a の関数をとり、coiterTは n w a -> f (w a) の関数をとるので、
+多くのコンポーネントは a -> f a として合わせることが出来なければならず、coiterでもcoiterTでもうごかなければなりません。
+What we need is something to combine two of these functions into a product:
+それらの関数の2つを結合させproductにするものが必要です。
+
+(*:*) :: (Functor f, Functor g) => (a -> f a) -> (a -> g a) -> a -> (f :*: g) a
+(*:*) = liftA2 Pair
+
+which we can use to update the definition of mkCoAdder:
+これでmkCoAdderの定義を更新することが出来ます。
+
+type CoAdderF = CoAddF :*: CoClearF :*: CoTotalF
+
+mkCoAdder :: Int -> Int -> CoFreeT CoAdderF (StoreT Int (EnvT Int Identity)) ()
+mkCoAdder limit count =
+    coiterT next start
+  where
+    next = coAdd *:* coClear *:* coTotal
+    start = flip StoreT count . EnvT limit . Identity $ const ()
+
+
+Pairings
+
+The last piece of the puzzle is to establish a Pairing between AdderF and CoAdderF. Previously, this was
+最後のピースはAdderFとCoAdderFのPairingです。以前は下記です。
+
+instance Pairing CoAdderF AdderF where
+  pair f (CoAdderF a _ _) (Add x k) = pair f (a x) k
+  pair f (CoAdderF _ c _) (Clear k) = f c k
+  pair f (CoAdderF _ _ t) (Total k) = pair f t k
+
+There are pairings between Sum and Product functors if there are pairings between their components:
+SumとProductのコンポーネントの間にペアが存在するなら、それらのファンクターの間にペアが存在します。
+
+instance (Pairing f f', Pairing g g') => Pairing (f :+: g) (f' :*: g') where
+  pair p (InL x) (Pair a _) = pair p x a
+  pair p (InR x) (Pair _ b) = pair p x b
+
+instance (Pairing f f', Pairing g g') => Pairing (f :*: g) (f' :+: g') where
+  pair p (Pair a _) (InL x) = pair p a x
+  pair p (Pair _ b) (InR x) = pair p b x
+
+This means that we only need to provide pairings between the corresponding functors from the DSL and interpreter functors:
+DSLとインタープリターによる対応したファンクター間のペアを提供することだけが必要です。
+
+instance Pairing CoAddF AddF where
+  pair f (CoAdd a) (Add x k) = pair f (a x) k
+
+instance Pairing CoClearF ClearF where
+  pair f (CoClear c) (Clear k) = f c k
+
+instance Pairing CoTotalF TotalF where
+  pair f (CoTotal t) (Total k) = pair f t k
+
+and we’ll be back to where we were:
+そして、戻ります。
+
+type AdderF   = AddF :+: ClearF :+: TotalF
+-- There is a Functor instance for AdderF if there are
+-- Functor instances for each of AddF, ClearF and TotalF
+-- もし、AddF, ClearF, TotalF のFunctorのインスタンスがあるならば、AdderFのFunctorのインスタンスが必要
+
+type CoAdderF = CoAddF :*: CoClearF :*: CoTotalF
+-- There is a Functor instance for CoAdder if there are
+-- Functor instances for each of CoAddF, CoClearF and CoTotalF
+-- もし、CoAddF, CoClearF, CoTotalF のFunctorのインスタンスがあるならば、CoAdderFのFunctorのインスタンスが必要
+
+-- There is a Pairing instance for CoAdderF an AdderF if there are
+-- Pairing instances for each of AddF / CoAddF, ClearF / CoClearF and TotalF / CoTotalF
+-- もし、AddF / CoAddF, ClearF / CoClearF, TotalF / CoTotalF のPairingのインスタンスがあるならば、AdderF / CoAdderFのPairingのインスタンスが必要
+
+
+Everything should work out as before, and we’ve gained the ability to mix and match functionality in both the DSL and the interpreter.
+全てが以前のように動きます。そして、DSLとインタープリターの両方とも必要なものを選んで組み合わせらせる機能を得ること出来ました。
+Even though we have the parts of the interpreter separated out, they still interact via the underlying comonad transformers.
+インタープリターを分解しましたが、コモナドトランスフォーマーを基底として相互に影響し合っています。
+This provides another axis for combination and reuse.
+別の枠組みのコンビネーションと再利用を提供出来ます。
+For example, you can write reusable code on top of component X, you can write reusable code on top of component Y, 
+and you can also write reusable code on top of the combination of components X and Y and a ComonadStore Int w context.
+例えば、コンポーネントXの上に再利用可能なコードを書くことが出来、コンポーネントYの上にも再利用可能なコードをかけ、
+コンポーネントXとYとComonadStore Int wの文脈の上にも再利用可能ななコードをかけます。
+Lots of fun to be had.
+楽しいことがたくさんあります。
+
+Conclusion and open questions
+結論と未解決の問題
+
+We now have a decent separation of concerns for our DSL and interpreter, and the ability to mix and match DSLs and interpreters together.
+DSLとインタープリターの関連を分けることが出来、混ぜ合わせることもできました。
+It also means that we can write functions that work with the DSL or interpreter in a context where we only have access to the components that we really need. 
+本当に必要なコンポーネントにだけアクセスするDSLやインタープリターの文脈で働く関数を書くことが出来るということです。
+This increases the scope for reuse and decreases the scope for writing misbehaving code, and I’m a fan of both of those.
+これは再利用のための範囲を増加させ、正常に動作しないコードを書くための範囲を減少させ、それらの両方のファンです。
+I’m still interested in how to do better with the “Data types a la carte” machinery. 
+まだ、Data types a la carteの機構をより良く行うことに興味があります。
+With the current machinery, we need to make sure that our Sums and Products have the same components in the same order.
+現在の機械では、我々はSumとProductが同じ順序で同じコンポーネントを持っていることを確認する必要があります。
+It feels like it should be possible to do significantly better than this, such that:
+以下のようになることが可能であればよいのにと思っています。
+
+    the components are guaranteed to be unique and the order doesn’t matter (effectively a Set)
+    コンポーネントは、一意であることが保証されており、順序が（セットのように）重要ではありません
+        this should also deal with the current problem of asymmetry
+        非対称という現在の問題にも対応する必要があります
+    if the Sum components are a subset of the Product components we can automatically create a Pairing from the Pairings between the components.
+    SumコンポーネントがProductコンポーネントのサブセットである場合、自動的にコンポーネント間のペアからPairingを作成することが出来ます
+
+I’ll probably tinker with this eventually, but if someone gets there before I do I’ll be pretty happy.
+私はおそらく最終的にはそれについて研究するでしょうが、私がする前に誰かが結果をえられるなら、喜ばしいことです。
+I’m also curious about whether we can go even further than Sum and Product, although I’m still not clear on how far that can be pushed in this context to make things more useful.
+SumとProduct以外のところまで掘り下げられるのかについても関心がありますが、どうやってこの文脈に有用に押し込むことができるかは、まだ、明確ではありません。
+There’s still a few posts to come before I’ve covered everything I mentioned in the talk.
+私が講義で言及したことに対する記事はまだあります。
+So far, none of the interpreters we’ve defined have done any IO. 
+これまでのところ、定義したインタープリターのいずれも、任意のIOを行っていません。
+The next post will look at our options for dealing with effects in our DSLs and interpreters.
+次の投稿は、DSLやインタープリターにおける作用を扱うための選択肢を見ていきます。
+

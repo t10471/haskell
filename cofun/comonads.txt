@@ -1,0 +1,228 @@
+http://dlaing.org/cofun/posts/comonads.html
+
+A whirlwind tour of comonads
+駆け足で紹介するコモナド
+
+
+I recommend Gabriel Gonzalez’s explanation if you haven’t read it before.
+もし、Gabriel Gonzalezの説明を呼んでいないならば、先に読むことを勧めます。
+
+I’m posting this because
+この記事を書いた理由は
+    it’s part of what I covered in my talk, and I’m converting the rest of it blog form, so why not?
+    講演で話した内容でそれをブログに投稿しただけです。
+    some people won’t read the above link, and some intuition about comonads is going to help when I start talking about comonad transformers
+    上記のリンクの記事を読んでない人がいるので、コモナドトランスフォーマーの話を始める前にコモナドについての理解を助けるためです。
+
+I’m mostly interested in conveying some intuition about comonads here, but I’ll start with the typeclass and the laws. 
+私の主な興味はここでコモナドにつてのいくつかの洞察を伝えることですが、型クラスを法則から始めます。
+Hopefully that will provide a kind of road map that might help when translating the things you’ve learned about monads into a comonadic setting.
+モナドを学ぶことがコモナドに応用出来るでしょう(訳がよくわからない)
+
+
+The typeclasses and the laws
+
+Recall the typeclass for Monad:
+モナドの型クラスです
+
+class Monad m where
+  return    :: a -> m a
+  bind      :: (a -> m b) -> m a -> m b
+  join      :: m (m a) -> m a
+
+You might be more used to the operator >>= instead of bind. They’re the same function with their arguments flipped. 
+bindの代わりに >>= 演算子を使っているでしょう。引数が逆なだけで、これらは同じ関数です。
+You may also have come across bind in operator form as =<<. I’m using bind here to highlight the Monad / Comonad symmetry that will make an appearance in a moment.
+=<< というような演算子に出会ったことがあるかもしれません。 モナドとコモナドの対称性を明らかにするためにここではbindを使用します。
+
+With monads, we’re building up values in a monadic context from pure values. I hope it is easy to see that return converts a pure value to a value in the monadic context directly.
+モナドでは普通の値からモナドの文脈に値を構築します。returnを使って普通の値からモナドの文脈に直接変換することは簡単にできます。
+We can look at bind as some thing that helps us build up a value in a monadic context in stages. 
+bindが値をモナドの文脈に持ち上げるのを助けます。
+We’re aiming for a m b, we’ve already managed to get hold of an m a. 
+m a から m bに変換したいとします。
+We just need to provide a function to bridge between them, and that function will also build up a value in a monadic context from a pure value.
+それらを仲介する関数が必要です。そして、それらの関数は普通の値からモナドの文脈に押し上げる関数になるはずです。
+
+To get to Comonad, we flip everything.
+コモナドを導くには全てを逆にします。
+
+With the usual drollness, this includes the type parameter m:
+普通の面白さなら、型パラメータmが含まれます。(意味不明)
+
+class Comonad w where
+  extract   :: w a -> a
+  extend    :: (w a -> b) -> w a -> w b
+  duplicate :: w a -> w (w a)
+
+With comonads, we’re tearing down values in a comonadic context to get pure values.
+コモナドの文脈の値を分解し、普通の値を取得します。
+Again, extract does this directly while extend helps us “step down” in stages.
+また、extendしているものからextractすることで文脈から下ろすことを助けます。
+The laws also go through a similar transformation.
+放送くも同じ相に変換出来ます。
+
+The monad laws are:
+モナド則は下記です
+
+  bind return     = id
+  bind f . return = f
+  bind f . bind g = bind (bind f . g)
+
+and the comonad laws are:
+コモナド則は下記になります
+
+ extend extract      = id
+ extract . extend f  = f
+ extend f . extend g = extend (f . extend g)
+
+There different sets of comonad laws depending on which definitions you provide in the typeclass, and they’re all inter-related. 
+提供されている型クラスの定義には異なるコモナド則があります。そして、それらは相互に関係しています。
+It is worth checking out the haddocks to get a sense of those relationships.
+haddocks載っているそれらの関係を確認することはとても価値があります。
+
+Monads and comonads are both also functors, which we can see from these two functions:
+モナドもコモナドもファンクターです。それらの2つの関数を見てみます。
+
+fmapFromMonad :: Monad m => (a -> b) -> m a -> m b
+fmapFromMonad f = bind (return . f)
+
+fmapFromComonad :: Comonad w => (a -> b) -> w a -> w b
+fmapFromComonad f = extend (f . extract)
+
+As an exercise for the motivated reader, can you use the Monad / Comonad laws to show that the above functions obey the Functor laws?
+読者のモチベーションを上げるためにエクササイズを行います。モナド/コモナド則を使って上記の関数がファンクター則に従っていることを証明してください。
+
+List zippers
+
+I think one of the better ways of conveying the intuition of comonads - at least when working with a “container” analogy - is with the List zipper.
+コモナドの洞察を伝えるのによい方法は、少なくともコンテナの類推がいいと思うので、リストのジッパーを使います。
+The List zipper represents a non-empty list, with a focus on a particular element:
+リストのジッパーは特定の要素に焦点を当てた空ではないリストを表します。
+
+data ListZipper a =
+  ListZipper
+    [a] -- the elements before the focus, in reverse order
+     a  -- the focus
+    [a] -- the elements after the focus
+
+This lets us move the focus left and right efficiently:
+これは焦点をあてたものの左右に効率的に移動することができます。
+
+leftMay :: ListZipper a -> Maybe (ListZipper a)
+leftMay (ListZipper [] f rs)       = Nothing
+leftMay (ListZipper (l : ls) f rs) = Just $ ListZipper ls l (f : rs)
+
+-- stay put if we're at the far left end
+left :: ListZipper a -> ListZipper a
+left z = maybe z leftMay z
+
+rightMay :: ListZipper a -> Maybe (ListZipper a)
+rightMay (ListZipper ls f [])       = Nothing
+rightMay (ListZipper ls f (r : rs)) = Just $ ListZipper (f : ls) r rs
+
+-- stay put if we're at the far right end
+right :: ListZipper a -> ListZipper a
+right z = maybe z rightMay z
+
+It is pretty easy to come up with a Functor instance:
+Functorのインスタンスにするのは簡単です
+
+instance Functor ListZipper where
+  fmap g (ListZipper ls f rs) = ListZipper (fmap g ls) (g f) (fmap g rs)
+
+We can define a Comonad instance, but you don’t need to worry about the details for most of these posts:
+コモナドのインスタンスを定義することは出来るが、詳細についてはこれから記述するので心配する必要はありません。
+
+import Data.Maybe (catMaybes, isJust)
+
+instance Comonad ListZipper where
+  extract (ListZipper _ f _) = f
+  duplicate z = ListZipper lefts z rights
+    where
+      gather f = tail . catMaybes . takeWhile isJust . iterate (>>= f) . Just
+      lefts    = gather leftMay z
+      rights   = gather rightMay z
+
+With a suitable Show instance, we can see that extract does what we’d expect:
+適切なShowのインスタンスを定義することで、extractの結果をみることができます。
+
+let z = ListZipper [2, 1] 3 [4]
+
+> z
+| 1 | 2 > 3 < 4 |
+
+> extract z
+3
+
+I’ll take some license with the Show instance to demonstrate duplicate:
+duplicateのデモンストレーションのためにShowインスタンスの許可をとります
+
+> duplicate z
+||  >1<2|3|4| || |1>2<3|4| >> |1|2>3<4| << |1|2|3>4< ||
+
+For extend, it’s time to break out some graphs.
+extendはグラフで説明します。(訳が不明)
+
+Just say we have some list zipper, z:
+リストのジッパーzがあるとします
+
+ここにグラフ
+
+The focus is unspecified, but it’s not going to change throughout these examples.
+焦点は特定しませんが、サンプルを通して不変です。
+Given a function that finds the greatest value to the left of the focus:
+焦点の左側から最も大きい値を見つける関数を定義します。
+
+import Safe (maximumDef)
+
+latch :: Ord a => Zipper a -> a
+latch (Zipper l f _) =
+  maximumDef f l
+
+we can create a list zipper of the highest values as seen when moving from left to right through the zipper:
+ジッパーを左から右に移動したときの大きい値の推移を示します。(ものすごい意訳)
+
+ここにextend latch zのグラフ
+
+Given a function to determine if the focus is greater than both of its immediate neighbours:
+両隣よりも焦点が大きいか判定する関数を示します。
+
+import Safe (headDef)
+
+peak :: Ord a => Zipper a -> Bool
+peak (Zipper l f r) =
+  headDef f l < f && f > headDef f r
+
+we can find all of the points which are greater than their neighbours:
+両隣よりも大きい点を示します。
+
+ここにextend peak zのグラフ
+
+Given a function to find the average value with a certain distance of the focus:
+焦点からある特定の範囲の値の平均を取得する関数を示します。
+
+wma ::  Int -> Zipper Double -> Double
+wma n (Zipper l f r) =
+  average $ take n l ++ f : take n r
+
+we can find the windowed moving average of the entire list zipper:
+移動平均が分かります。
+
+ここにextend (wma 10) zのグラフ
+
+We can also compose these functions:
+合成した関数もできます。
+
+ここにextend peek . extend (wma 10) $ z のグラフ
+
+Conclusion
+結論
+
+Aside from the fact that there’s a comonad behind every zipper (which you can read more about here (PDF) and here), 
+there’s quite a bit more to say about the humble list zipper on it’s own, but that will be the topic of a future series of posts…
+全てのzipperにはコモナドが隠れているということはべつにして、もっとリストのジッパーについて話したいですが、
+それは将来の記事で行います。
+
+
+

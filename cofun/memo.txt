@@ -1,0 +1,5 @@
+VimShellInteractive ghci -no-user-package-db -package-db /root/workspace/cofun/.cabal-sandbox/x86_64-linux-ghc-7.10.2-packages.conf.d
+
+http://dlaing.org/cofun/の翻訳
+
+
