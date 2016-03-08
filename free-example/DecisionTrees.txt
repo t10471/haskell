@@ -1,0 +1,442 @@
+http://clathomasprime.github.io/hask/freeDecision
+
+Decision Trees Are Free Monads Over the Reader Functor
+決定木はRederファンクタにのったFreeモナドです
+
+Clay Thomas
+
+Free f a, the free monad over a given functor f is often described as 
+Free f aのファンクタfによって与えられるaにのっているフリーモナドは
+"trees which branch in the shape of f and are leaf-labeled by a".
+「fの形の枝とaによって葉にラベル付けされた木」と言われることがあります。
+What exactly does this mean? Well, the definition of Free is:
+これの実際の意味は何でしょうか？Freeの定義はこうです。
+
+data Free f a
+  = Pure a
+    | Free (f (Free f a) )
+
+So if we have a functor data Pair a = Pair a a, 
+もし、data Pair a = Pair a aというファンクタがあったら、
+we indeed have Free Pair a representing ordinary leaf labeled, nonempty binary trees.
+実際Free Pair aはラベル付けされた葉をもつ空を許可しない2分木を表現します。
+
+Now, if you know about decision trees, "leaf labeled" should catch your ear. 
+さて、もし決定木について知っているなら「ラベル付けされた葉」というのを聞いたことがあるでしょう。
+(Binary) decision trees are trees where each node represents a yes/no feature about some observation.
+(二分)決定木は何らかの観測結果についてのはい/いいえを表現するノードからなる木です。
+The leafs of the tree are labeled with distributions. 
+木の葉は分布によってラベル付けされます。
+To predict, you descend the tree according to an observation, and the distribution 
+予測では観察結果と分布によって木を下降していき、
+you reach at the bottom is your best guess at the distribution for your new observation.
+一番下に到達したところが新しい観察結果をもとにした分布の最も妥当な予測です。
+
+So if we want to fit a monad Free f a to the task of a decision tree, 
+もしFree f aモナドを決定木のにフィットさせるには、
+it is clear that a should represent the distribution you are predicting. 
+予測の分布を表現出来なければならないことは明白です。
+For the sake of simplicity, 
+簡単のために、
+we will simply set a to Bool and will just guess a yes or no, as opposed to providing percentages.
+aとしてBool値を使い、パーセンテージの予測はせずに「はい」と「いいえ」の予測を行います。
+
+Our choice of f is a little less clear. 
+選んだfは少しわかりにくいです。
+We need to read in some information from an observation, say of type r, and descend into the next level of the tree. 
+rの型の観察結果から情報を読み取る必要があります。 そして木の次のレベルに下降します。
+Well, speaking of reading information, what about the reader functor (->) r! 
+情報を読み取るといえばreaderファンクタ(->) rです。
+If we try f = (->) r, we get
+fを (->) rとして、
+
+data  Free (-> r) Bool
+  =   Pure Bool
+    | Free (r -> Free (-> r) Bool )
+
+This looks like exactly what we want! 
+これはちょうど求めていたいものです。
+We fix a row type r, and when provided new rows 
+rのタイプを決定します。そして新しい行が与えられたとき、
+we can traverse through internal Free nodes until we reach a leaf Pure node.
+葉のPureノードに達するまで、 内部のFreeノードを走査することができます。
+So, we define
+そして、下記のように定義します。
+
+-- | A model with row type `r` and class label type `c`
+-- rの行のタイプとcのクラスラベルタイプを持ったモデル
+type TreeM r c = Free ((->) r) c
+
+Recursion Combinators
+再帰コンビネーター
+
+The observation presented here is hardly earth-shattering, 
+ここで紹介する観察結果は、ほとんど驚くべきことではないですが、
+but it does come with some advantages other than "hey, a connection!".
+いくつかのコネクションよりもアドバンテージがあります。
+But adapting some recursive combinators (which typically act on the Fix data type) 
+しかし、いくつかの再帰コンビネーター(典型的なFixデータタイプに作用するような)に合わせることで、
+we can separate the recursive logic of our program from the actual computation. 
+実際の計算からプログラムの再帰ロジックを分離することができます。
+The goal of recursion combinators is to standardize patterns in recursion and make their implementations cleaner.
+再帰コンビネータの目標は、再帰のパターンを標準化し、そのクリーナーを作ることです。
+
+Free f a is strikingly similar to the type Fix f, the fixed point of the functor f. Recall
+Free f aは不動点のファンクタfであるFix fに非常によく似てています。
+
+newtype Fix f = Fix { unFix :: f (Fix f)  }
+
+Essentially, Free allows us to stop our infinite, f-branching tree early and return a Pure value of type a. 
+基本的にFreeはfによって構築されている木からaのタイプをもつPureを早期に返すことで無限再帰をとめることができます。
+In many applications, the real result of this is that the functors f that 
+多くのアプリケーションにおいて実際のfの結果は
+you use with Fix are more complicated than those you use with Free 
+Freeと使うよりFixと使った方がより複雑です。
+because with Fix you need to embed the notion of returning data into your base functor. 
+なぜなら、Fixと使うにはベースのファンクタに返されるデータの記述を含む必要があるからです。
+(For example, we could model Free f a itself using Fix with a base functor data Br f a r = Either a (f r ) deriving Functor, 
+例えば、Free f a は Fixをベースのファンクタとして使ってモデル化できます。data Br f a r = Either a (f r  ) deriving Functor
+and get Free f a === Fix (Br f a).)
+それは Free f a と Fix (Br f a) は等価です。
+
+
+For Fix, catamorphisms and anamorphisms are very useful recursion combinators, 
+Fixにとってカタモーフィズムとアナモーフィズムはとても有用な再帰コンビネーターです。
+which respectively collapse and grow a recursive structure:
+それぞれ、畳みこみと展開の再帰構造です。
+
+-- | Tear down a recursive structure, i.e. an element of Fix f.
+--   例えばFix fの要素について再帰構造を分解すると
+--   First we recursively tear down each of the subtrees in the first level of the fixed point. 
+--   最初に部分木内の最初のレベルの不動点を再帰的に分解していきます
+--   Then we collapse the last layer using the algebra directly.
+--   そして、直接代数を使って最後の層をつぶします 
+
+cata :: Functor f => (f a -> a )   -- ^ A algebra to collapse a container to a value コンテナをつぶして値にする代数
+                  -> Fix f         -- ^ A recursive tree of containers to start with スタートするための再帰的なコンテナの木
+                  -> a
+cata alg fix = alg . fmap (cata alg) . unFix $ fix
+
+-- | Build up a recursive structure, i.e. an element of Fix f.
+--   Fix fの要素、再帰構造を構築する 
+--   We first expand our seed by one step.
+--   1ステップずつ拡張していく 
+--   Then we map over the resultant container,
+--   そして、最終的なコンテナを作り上げる 
+--   recursively expanding each value along the way.
+--   一定の方法で再帰的にそれぞれの値を拡張してく 
+ana :: Functor f => (a -> f a )    -- ^ A function to expand an a
+                 -> a              -- ^ A seed value to start off with
+                 -> Fix f          --
+ana grow seed = Fix . fmap (ana grow) . grow $ seed
+
+It is pretty easy to extend cata to work on Free instead of Fix, 
+Fixの代わりにFreeを使って動くcataに拡張するのは結構簡単です。
+we just need to add a case for Pure:
+Pureのケースを追加するだけです。
+
+cataF :: Functor f => (f a -> a ) -> Free f a -> a
+cataF alg (Free u) = alg . fmap (cataF alg) $ u
+cataF _   (Pure a) = a
+
+It is somewhat harder to logically extend ana. 
+anaを論理的に拡張するのはやや難しいです。
+Indeed, the exact same code that worked for Fix works for free, 
+実際、Fixで動いたものをFreeで動かすには少しコードの追加が必要です。
+it just always builds infinite trees and never allows Pure.
+無限に続く木を構築するにはPureは使えません。
+Thus the input function has to allow for the possibility of a Pure value:
+なので、入力関数はPureの可能性を許可しなければなりません。
+
+anaF :: Functor f => (a -> Either (f a ) b ) -> a -> Free f b
+anaF grow seed
+  = case grow seed of
+          Left u  -> Free . fmap (anaF grow) $ u
+          Right b -> Pure b
+
+
+The Hard Work
+大変な作業
+
+We start with a preamble to equip some convenient language extensions and import the needed libraries. 
+実装に向けて便利な言語拡張と必要なライブラリのインポートから始めましょう。
+Then we define our table data type and some simplified accessor functions.
+そして、テーブルデータタイプの定義とシンプルなアクセス関数の定義をします。
+
+What follows is complete and valid Haskell can be run on a modern GHC. 
+下記のコードは最近のGHCでは実行可能な正しいHaskellです。
+You need only the code below this point, along with our definitions of cataF and anaF above. 
+下記のコードは上に定義したcataFとanaFと一緒に使う必要があります。
+You can also snag the code here.
+完成版はここにあります。
+
+{-# LANGUAGE RankNTypes
+           , RelaxedPolyRec
+           , DeriveFunctor
+           , TupleSections
+           , ScopedTypeVariables
+           , UndecidableInstances
+  #-}
+import qualified Data.List as List
+import qualified Data.MultiSet as Set
+import qualified Data.Map as Map
+import Control.Monad.Free
+
+
+-- | value = Bool will suffice for this code,
+--   value = Bool で十分だが、
+--   but more general Tables are certainly reasonable
+--   Tableはより汎用的にしている
+data Table key value = Table
+  { keys :: [key]
+      -- ^ For iterating and looping purposes
+  , rows :: Set.MultiSet (value, Row key value)
+      -- ^ An unordered collection of Rows associated to labels
+  } deriving(Show)
+
+type Row key value = Map.Map key value
+
+numKeys :: Table k v -> Int
+numKeys = length . keys
+
+numRows :: Table k v -> Int
+numRows = Set.size . rows
+
+--Assume all tables are full
+-- maybe :: b -> (a -> b ) -> Maybe a -> b
+getKey :: Ord k => k -> Row k v -> v
+getKey k row = maybe undefined id (Map.lookup k row)
+
+emptyBinTable :: Table key value
+emptyBinTable = Table [] Set.empty
+
+Now, the learning method of decision trees is (roughly) the following:
+さて、決定木の学習方法は、（おおよそ）以下の通りです：
+
+    If there are no keys in the table, return a model that predicts the most common class label.
+    テーブルにキーが存在しない場合は、最も一般的なクラスラベルを予測するモデルを返します。
+    If there are keys, find the key that best predicts the class label.
+    キーが存在する場合、最適なクラスラベルを予測するキーを見つけます。
+    Split the data into two new tables based on the value of that key.
+    そのキーの値に基づいて2つの新しいテーブルにデータを分割します。
+    Recursively grow a decision tree for the two new data sets.
+    再帰的に二つの新しいデータ・セットの決定木を成長させます。
+    Put the two new trees together into a model that first predicts based on the best key, then predicts based on the recursive, new trees.
+    最適なキーに基づいた最初の予測モデルに2つの新しい木をまとめます。そして、再帰的に新しい木に基づきて予測します・
+
+The following code implements several tools we will need:
+下記のコードの実装にはいくつかの部品が必要です：
+
+-- | We score the keys by how many labels the key could get correct.
+--   どのくらいキーが正しいラベルを付けたによってキーに得点をつけます
+-- This method returns two values: 
+-- このメソッドは2つの値を返します
+-- the first is if the model applied a positive correlation, 
+-- 1つ目はモデルが与えられた時のはいの数
+-- the second is if it assumes a negative correlation.
+-- 2つ目はいいえの数
+scores :: Ord k => k -> Table k Bool -> (Int, Int)
+scores k tab = Set.fold (indicator k) ((,0) 0) $ rows tab
+  where indicator :: Ord k => k -> (Bool, Row k Bool) -> (Int,Int) -> (Int,Int)
+        indicator k (label, row) (pos, neg)
+          = case Map.lookup k row of
+                 Just a -> (pos + fromEnum (label==a), neg + fromEnum (label/=a))
+                 Nothing -> (pos, neg)
+
+-- | Loop over all the keys and find the one that predicts with highest accuracy
+--   すべてのキーをループし、最高の精度で予測するものを見つけます
+bestKey :: Ord k => Table k Bool -> k
+bestKey tab
+  = let bestScore k
+          = let (pos, neg) = scores k tab
+             in (k, max pos neg)
+        maxScores = fmap bestScore (keys tab)
+        (bestKey, _)
+          = List.maximumBy (\(_,s) (_,s') -> s `compare` s') maxScores
+     in bestKey
+
+removeKey :: (Ord k, Ord v) => k -> Table k v -> Table k v
+removeKey k tab =
+  emptyBinTable
+    { keys = (List.\\) (keys tab) [k]
+    , rows = Set.map (\(lab,row) -> (lab, Map.delete k row)) (rows tab)
+    }
+
+-- | Split a table into two tables based on the value of one key.
+--   あるキーの値に基づきテーブルを2つのテーブルに分割する
+-- Also remove the key from the new tables.
+-- そして、新しいテーブルからそのキーを削除する
+filterOn :: Ord k => k -> Table k Bool -> (Table k Bool, Table k Bool)
+filterOn k tab
+  = let kTrue = getKey k . snd -- ^ predicate to test if key k is true for some row
+        trueRows = Set.filter kTrue (rows tab)
+        falseRows = Set.filter (not . kTrue) (rows tab)
+     in (removeKey k tab{rows = trueRows}, removeKey k tab{rows = falseRows})
+
+-- | Ignore all the rows and just guess a boolean based on class label
+--   行についてはすべて無視し、クラスラベルのブール値にだけ基づいて推測する 
+bestGuess :: Ord k => Table k Bool -> Bool
+bestGuess tab
+  = let nTrue = Set.fold (\(b,_) accum -> accum + fromEnum b) 0 (rows tab)
+        -- ^ count number of true labels
+     in if 2 * nTrue >= numRows tab
+           then True
+           else False
+
+These are all straightforward things that we would probably implement if we were writing this algorithm without recursion combinators.
+再帰コンビネーターなしにこのアルゴリズムを書いたなら もしかしたらすべて単純なものとして実装するでしょう。
+
+Applying our Recursion Combinators
+再帰コンビネーターを適用する
+
+Now that we have some functions to manipulate and extract information out of our tables, 
+テーブルから情報を取り出し操作する機能をいくつか持っているので、
+we are ready to learn our models and predict with them. 
+モデルを学習させ、それらを予測する準備が出来ました。
+We write the function discriminate to fit the type signature of anaF. 
+anaFの定義に合わせるようにdiscriminateを書きます。
+This function accepts a table and returns one of two things:
+この関数は、テーブルを受けとり、2つのうちの1つを返します：
+
+    If the table contains only class labels, we return a single Bool that represents our best guess of the class label.
+    もしテーブルが単一のクラスラベルのみ含んでいるなら、クラスラベルの最適予測を表す単一のブール値を返す。
+    If the table still has some keys, we return a mapping.
+    もしテーブルにまだいくつかのキーが存在するなら、マップを返す。
+    This mapping takes in any row, and returns a split of the data based on the value of bestKey within the row.
+    マップはいくつかの行を持っています。そして、 行に含まれる最適なキーの値に基づいて分割されたデータを返します。
+
+Recall that anaF :: Functor f => (a -> Either (f a) b) -> a -> Free f b and that type TreeM r c = Free ((->) r) c. 
+再度言いますが、anaF :: Functor f => (a -> Either (f a ) b ) -> a -> Free f bでtype TreeM r c = Free ((->) r) cです。
+When we apply anaF to discriminate, it has the effect of recursing over the newly created tables, 
+discriminateにanaFを適用するとき、再帰的に新しいテーブルの影響を受け、
+crowing more models until we hit the base case of a table with only class labels.
+単一のクラスラベルのテーブルになるまで多くのモデルが生成されます。
+
+discriminate :: Ord k => Table k Bool -> Either (Row k Bool -> Table k Bool) Bool
+discriminate tab
+  | numKeys tab == 0
+    = Right $ bestGuess tab
+  | otherwise
+    = let key = bestKey tab
+          (trueTab, falseTab) = filterOn key tab
+       in Left $ \row ->
+          let bool = getKey key row
+           in if bool then trueTab else falseTab
+
+-- | Finally time to use this!
+type TreeM r c = Free ((->) r) c
+
+learn :: Ord k => Table k Bool -> TreeM (Row k Bool) Bool
+learn = anaF discriminate
+
+--cataF :: Functor f => (f a -> a) -> Free f a -> a
+predict :: Ord k => Row k Bool -> TreeM (Row k Bool) Bool -> Bool
+predict row model = cataF ($ row) model
+
+Now we are done! All the work paid off with very, very short definitions for learn and predict. 
+完成しました。これまでの作業により、learnとpredictの定義はとても短い定義でになりました。
+Keep in mind that before learn and predict, nothing we had written involved recursion at all.
+learnとpredict以外には再帰を含む記述は全くないことを忘れないでください。
+
+Extensions
+拡張
+
+By changing discriminate, we change our learning method. 
+discriminateを変えることで、学習メソッドも変えます。
+Using anaF adds some constraints on how we can learn our model, but still allows some freedom. 
+anaFの使用時のモデル学習に制約を付けます。しかし、いくつかの自由は保障します。
+Here are some possible avenues for extending and improving our models:
+モデルの拡張や改良のいくつかの手段を提示します。
+
+    We could test whether the inference gained at a given node is statistically significant, 
+    与えられたノードによって得られた推論が 統計的に有意であるかテストすることができます。
+    for example with a chi squared test.
+    例えば、カイ2乗テストを使えます。
+    If the key is not a significant predictor at that level, 
+    キーが現時点では重要な予測子でないなら、
+    we can stop growing our decision tree early and return our best guess at that stage. 
+    早期に決定木の成長を止め、その状態の最適予測を返すことができます。 
+    This would help prevent overfitting.
+    加学習を防げます。
+
+
+    We could add fields to our table data type and set them when we split at each step of the recursion. 
+    テーブルにフィールドを追加することができます。そして、再帰の各ステップで分割するときに設定します。 
+    For example, we could add a counter that prevents the tree from growing past a certain height (again, this combats overfitting). 
+    例えばカウンターを追加することで、一定の高さを越えて成長するのを防げます。(加学習との戦いです。) 
+    Alternatively, if we have some prior belief that certain variables work well together as predictors, 
+    また、ある変数が予測子と一緒によく機能することを前もって知っていたならば、 
+    we may want these variables to be close together in the decision tree.
+    決定木の内の近くにその変数を設置するでしょう。 
+    By storing the "splitting key" of the parent node, we could implement this in discriminate.
+    親ノードの分割したキーを溜めたものをdiscriminateに組み入れることができるでしょう。
+
+    The rows can be extended to hold non-Boolean data without changing the data type of our model very much. 
+    モデルのデータの型を変えることなく行がブール型ではないデータを保持するように拡張することができます。 
+    discriminate can grow the branchings with any function from rows to new training tables. 
+    discriminateは行から新しいトレーニング用テーブルを作ることでどんな関数を使っても枝を成長させることが出来ます。
+    If the complexity of each step of inference grows, we just need to make this branching function more complicated.
+    もし、各ステップの生長の予想が複雑ならば、より複雑な枝を作成する関数が必要なだけです。
+
+    The current model is totally deterministic. 
+    現在のモデルは完全に決定論的です。 
+    Recently, there has been some work in elegantly and efficiently adding probabilistic programming to Haskell (for example here), 
+    最近では、Haskellでエレガントで効率的な確率的なプログラミングを追加した手法があります。(例えばここに)
+    but these methods seem mostly suited to learning parametric models. 
+    しかし、これらの方法は、パラメトリックモデルの学習に主に適しているようです。 
+    Perhaps recursion combinators (or a similar idea) are one way to elegantly learn nonparametric models whose structure needs to be determined dynamically.
+    もしかすると、再帰コンビネーター(とその類似のアイディア)は動的に決定する必要がある構造のノンパラメトリックモデルをエレガントに学ぶ方法の一つかもしれません。
+    
+    It is not clear how to give the learning method control over multiple levels of the hierarchy. 
+    複数階層を制御する学習メソッドどうやって与えるか明らかではありません。
+    We could add information about the parent nodes, but we cannot go back and change them based on new information. 
+    親ノードについての情報を追加することが出来ますが、新しい情報に基づいて戻ったり、変更したりすることはできません。 
+    A common learning method for decision trees is to grow out a few levels at once and decide between them, 
+    一般的な決定木の学習メソッドは一度に少しのレベルで成長し、それらの間で決定するので、
+    and this would be difficult to simulate in the current framework.
+    現在のフレームワークではシミュレーションすることは難しいです。
+    With a wealth of recursion combinators out there, one may capture this idea very well.
+    並外れた再帰コンビネーターの知恵よって上手くアイディアを得ることができるかもしれません。
+
+Appendix: A Printable Interface
+付録：Printable Interface
+
+It is hard to verify if the above information is correct because we cannot (sensibly) print out functions in Haskell. 
+上記の情報が正しいかどうかを確認することは困難です。なぜなら、Haskellでは関数の状態を敏感に出力することは出来ません。
+The following code fixes this by providing a datatype for the branching instead of relying on functions. 
+下記コードは枝情報のデータタイプを使うことで関数に頼ることの代わりとしています。
+This provides much less flexibility in how we do branching, but allows us to print things! 
+枝をどうやって作るかということの自由さを減らすかわりに、出力することができるようにしています。
+The following implements the exact same algorithm as above:
+下記の実装は上記のアルゴリズムと同様に動きます。
+
+data Branch k r = Branch
+  { key :: k
+  , bTrue :: r
+  , bFalse :: r
+  } deriving(Show, Functor)
+
+discriminate' :: Ord k => Table k Bool -> Either (Branch k (Table k Bool)) Bool
+discriminate' tab
+  | numKeys tab == 0
+    = Right $ bestGuess tab
+  | otherwise
+    = let goodKey = bestKey tab
+          (keyTrueTab, keyFalseTab) = filterOn goodKey tab
+       in Left $ Branch
+            { key = goodKey
+            , bTrue = keyTrueTab
+            , bFalse = keyFalseTab
+            }
+
+learn' :: Ord k => Table k Bool -> Free (Branch k) Bool
+learn' = anaF discriminate'
+
+predict' :: Ord k => Row k Bool -> Free (Branch k) Bool -> Bool
+predict' row model = cataF phi model
+  where phi br
+          = case getKey (key br) row of
+                 True -> bTrue br
+                 False -> bFalse br
+
+
