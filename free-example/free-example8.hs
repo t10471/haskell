@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 import Control.Applicative
 import Control.Monad.Free
 import Data.Vector

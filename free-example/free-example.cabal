@@ -14,28 +14,28 @@ cabal-version:       >=1.10
 -- -----------------------------------------------------------------------------
 executable free-example1
   main-is: free-example1.hs
-  build-depends:   base >= 4.5 && < 4.8
+  build-depends:   base >= 4.5 && < 4.9
                  , free >= 4.10
   ghc-options: -O2
   default-language: Haskell2010
 
 executable free-example2
   main-is: free-example2.hs
-  build-depends:   base >= 4.5 && < 4.8
+  build-depends:   base >= 4.5 && < 4.9
                  , free >= 4.10
   ghc-options: -O2
   default-language: Haskell2010
 
 executable free-example3
   main-is: free-example3.hs
-  build-depends:   base >= 4.5 && < 4.8
+  build-depends:   base >= 4.5 && < 4.9
                  , free >= 4.10
   ghc-options: -O2
   default-language: Haskell2010
 
 executable free-example4
   main-is: free-example4.hs
-  build-depends:   base >= 4.5 && < 4.8
+  build-depends:   base >= 4.5 && < 4.9
                  , free >= 4.10
                  , mtl >= 2.2.1
   ghc-options: -O2
@@ -43,7 +43,7 @@ executable free-example4
 
 executable free-example5
   main-is: free-example5.hs
-  build-depends:   base >= 4.5 && < 4.8
+  build-depends:   base >= 4.5 && < 4.9
                  , free >= 4.10
                  , mtl >= 2.2.1
                  , containers >= 0.5
@@ -52,7 +52,7 @@ executable free-example5
 
 executable free-example6
   main-is: free-example6.hs
-  build-depends:   base >= 4.5 && < 4.8
+  build-depends:   base >= 4.5 && < 4.9
                  , free >= 4.10
                  , mtl >= 2.2.1
                  , containers >= 0.5
@@ -61,14 +61,14 @@ executable free-example6
 
 executable free-example7
   main-is: free-example7.hs
-  build-depends:   base >= 4.5 && < 4.8
+  build-depends:   base >= 4.5 && < 4.9
                  , free >= 4.10
   ghc-options: -O2
   default-language: Haskell2010
 
 executable free-example8
   main-is: free-example8.hs
-  build-depends:   base >= 4.5 && < 4.8
+  build-depends:   base >= 4.5 && < 4.9
                  , free >= 4.10
                  , vector >= 0.10
   ghc-options: -O2
@@ -76,7 +76,7 @@ executable free-example8
 
 executable free-example9
   main-is: free-example9.hs
-  build-depends:   base >= 4.5 && < 4.8
+  build-depends:   base >= 4.5 && < 4.9
                  , free >= 4.10
                  , vector >= 0.10
                  , random >= 1.1
@@ -86,7 +86,7 @@ executable free-example9
 
 executable free-exampleA
   main-is: free-exampleA.hs
-  build-depends:   base >= 4.5 && < 4.8
+  build-depends:   base >= 4.5 && < 4.9
                  , free >= 4.10
                  , mtl >= 2.2.1
                  , containers >= 0.5
@@ -95,7 +95,7 @@ executable free-exampleA
 
 executable free-exampleB
   main-is: free-exampleB.hs
-  build-depends:   base >= 4.5 && < 4.8
+  build-depends:   base >= 4.5 && < 4.9
                  , free >= 4.10
                  , mtl >= 2.2.1
                  , containers >= 0.5
@@ -104,16 +104,27 @@ executable free-exampleB
 
 executable free-exampleC
   main-is: free-exampleC.hs
-  build-depends:   base >= 4.5 && < 4.8
+  build-depends:   base >= 4.5 && < 4.9
                  , free >= 4.10
                  , mtl >= 2.2.1
                  , containers >= 0.5
   ghc-options: -O2
   default-language: Haskell2010
 
+executable decPost
+  main-is: decPost.hs
+  build-depends:   base >= 4.5 && < 4.9
+                 , free >= 4.10
+                 , mtl >= 2.2.1
+                 , containers >= 0.5
+                 , multiset == 0.3.2
+                 , transformers
+  ghc-options: -O2
+  default-language: Haskell2010
+
 executable free-exampleD
   main-is: free-exampleD.hs
-  build-depends:   base >= 4.5 && < 4.8
+  build-depends:   base >= 4.5 && < 4.9
                  , free >= 4.10
                  , mtl >= 2.2.1
                  , containers >= 0.5

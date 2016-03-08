@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveFunctor    #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 import Control.Monad.Free
 import Data.Map.Strict as M

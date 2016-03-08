@@ -22,3 +22,6 @@ runMemoT m = runFreeT m >>= flip evalStateT M.empty . run where
       v <- lift . runFreeT . f >=> run $ k
       modify $ M.insert k v
       lift . runFreeT . cont >=> run $ v
+
+main = do
+        putStrLn "end"
