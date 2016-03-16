@@ -1,0 +1,692 @@
+http://www.parsonsmatt.org/2015/11/15/template_haskell.html
+
+Constructing an AST
+ASTの構築
+
+In Ruby, we built a string, which the Ruby interpreter then parsed, turned into an abstract syntax tree, and interpreted. 
+Rubyでは、構築した文字列をRubyのインタープリターがパースし、抽象構文木になったものを解析しました。
+In Haskell, we'll skip the string step. 
+Haskellでは文字列のステップを飛ばします。
+We'll build the abstract syntax tree directly using standard data constructors. 
+一般的なデータコンストラクタを使って抽象構文木を直接、構築します。
+GHC will verify that we're doing everything OK in the construction of the syntax tree, 
+我々が構文木の構築中に何をしてもOKなので、GHCはそれが正しいか確認てから、
+and then it'll print the syntax tree into our source code before compiling the whole thing. 
+コンパイルする前にソースコードに構文木を出力します。
+So we get two levels of compile time checking – that we built a correct template, and that we used the template correctly.
+なので、2つのレベルのコンパイル時チェックがあります。正しいテンプレートを構築すること、正しくテンプレートを使うことです。
+
+One of the nastiest things about textual metaprogramming is that there's no guarantee that your syntax is right – 
+テキスト形式のメタプログラミングの厄介なことの一つは、構文が正しいことを保証する術がないことです。
+and it can be really hard to debug when doing more complicated stuff. 
+そして、より複雑なものになると、デバッグには本当に難しいです。
+Programming directly into an AST makes it a lot easier to verify the correctness of what we write. 
+ASTに直接プログラミングすることは、非常に簡単に私たちが書いたものが正しいかどうかを検証することができます。
+The quasiquoters are a convenience built around AST programming, 
+quasiquotersはASTプログラミングを中心に構築されており便利ですが、
+but I'm of the opinion that you should learn the AST stuff first 
+私の意見は最初にASTについて学び、
+and then dive into the quoters when you have a good idea of how they work.
+その後、どういう場面で使うべきかわかってからquotersに飛び込むべきというものです。
+
+Alright, so let's get into our first example.
+それでは最初の例から進めていきます。
+We've written a function bigBadMathProblem :: Int -> Double that takes a lot of time at runtime, 
+bigBadMathProblem :: Int -> Double という実行時に時間のかかる関数を書いたので、
+and we want to write a lookup table for the most common values. 
+一般的な値については探索表(キャッシュ)が欲しいと考えています。
+Since we want to ensure that runtime speed is super fast, and we don't mind waiting on the compiler, 
+実行時間を超早くしたいので、コンパイル時間については気にしません。
+we'll do this with Template Haskell. 
+Template Haskellを使ってどうにかしようと思います。
+We'll pass in a list of common numbers, run the function on each to precompute them, 
+一般的な数字のリストを関数に渡し事前に計算しておき、
+and then finally punt to the function if we didn't cache the number.
+キャッシュしていない数字が渡されたら関数にまわすようにしたいです。
+
+Since we want to do something like the makeLenses function to generate a bunch of declarations for us, 
+makeLensesのように宣言を生成するようなものが欲しいので
+we'll first look at the type of that in the lens library. 
+lensライブラリーのその型を最初に見てみます。
+Jumping to the lens docs, we can see that the type of makesLenses is Name -> DecsQ. 
+lensのドキュメントを見ると、makesLensesはName -> DecsQという型だとわかります。
+Jumping to the Template Haskell docs, DecsQ is a type synonym for Q [Dec]. 
+Template Haskellのドキュメントを見るとDecsQはQ [Dec]の型シノニムだとわかります。
+Q appears to be a monad for Template Haskell, and a Dec is the data type for a declaration. 
+QはTemplate Haskellのモナドのようです。Decはデータタイプとして宣言されています。
+The constructor for making a function declaration is FunD. 
+関数宣言を作成するためのコンストラクタはFunDです。
+We can get started with this!
+これらを使うことで開発を開始できます！
+
+We'll start by defining our function. 
+関数の定義から始めます。
+It'll take a list of commonly used values, apply the function to each, and store the result. 
+よく使う値のリストを取りそれぞれ関数に適用しその結果を保存します。
+Finally, we'll need a clause that passes the value to the math function in the event we don't have it cached.
+最後に、キャッシュにない値を関数に渡す節が必要です。
+
+precompute :: [Int] -> DecsQ
+precompute xs = do
+  -- .......
+  return [FunD name clauses]
+  
+Since Q is a monad, and DecsQ is a type synonym for it, we know we can start off with do. 
+QはモナドでDecsQはそれの型シノニムなので、do構文から開始できます。
+And we know we're going to be returning a function definition, 
+そして、関数定義を返すことは分かっていますので、
+which, according to the Dec documentation, has a field for the name of the function and the list of clauses. 
+Decのドキュメントによると、関数の名前と節のリストを引数に持ちます。
+Now it's up to us to generate the name and clauses. Names are easy, so we'll do that first.
+それでは、その引数となる名前と節のを作りましょう。名前は簡単に作れるので先に作りましょう。
+
+We can get a name from a string using mkName. This converts a string into an unqualified name. 
+mkNameを使って文字列から名前を作れます。これは、非修飾名に文字列を変換します。
+We're going to choose lookupTable as the name of our lookup table, so we can just use that directly.
+lookupTableを探索表の名前として選びます。そしてそれを直接使います。
+
+precompute xs = do
+  let name = mkName "lookupTable"
+  -- ...
+  
+Now, we need to apply each variable in xs to the function named bigBadMathProblem. 
+さて、bigBadMathProblem関数にxsの値をそれぞれ適用する必要があります。
+This will go in the [Clause] field, so let's look at what makes up a Clause. 
+[Clause]の作成を行いたいのですが、どうやってClauseを作る調べてみましょう。
+According to the documentation, a clause is a data constructor with three fields: 
+ドキュメントによると、 Clauseのデータコンストラクタは3つの引数が必要で、
+a list of Pat patterns, a Body, and a list of Dec declarations. 
+Patパターンのリスト、Body、Dec宣言のリストです。
+The body corresponds to the actual function definition, 
+Bodyは実際の関数定義に対応し、
+the Pat patterns correspond to the patterns we're matching input arguments on, 
+Patパターンは関数の引数に対応し、
+and the Dec declarations are what we might find in a where clause.
+Dec宣言は節について作成している中でおいおい分かっていくでしょう。
+
+Let's identify our patterns first. 
+まず、パターンを識別してみましょう。
+We're trying to match on the Ints directly. 
+直接Intにマッチするように試みます。
+Our desired output is going to look something like:
+希望する出力は、下記のようなものになります。
+
+lookupTable 0  = 123.546
+lookupTable 12 = 151626.4234
+lookupTable 42 = 0.0
+-- ...
+lookupTable x  = bigBadMathProblem x
+
+So we need a way to get those Ints in our xs variable into a Pat pattern. 
+xsのIntをPatパターンに変える方法が必要です
+We need some function Int -> Pat… 
+Int -> Patのような関数が必要です。
+Let's check out the documentation for Pat and see how it works. 
+Patのドキュメントを確認して、どのように動くか見てみましょう。
+The very first pattern is LitP, which takes an argument of type Lit. 
+Patの定義の中で最初にあるのはLitPです。これはLitを引数に取ります。
+A Lit is a sum type that has a constructor for the primitive Haskell types. 
+LitはHaskellの基本タイプのコンストラクタの直和型です。
+There's one for IntegerL, which we can use.
+IntegerLがその中にあるので、今回はそれを使います。
+
+So, we can get from Int -> Pat with the following function:
+そんな感じで、Int -> Patの関数は下記のようになります。
+
+intToPat :: Int -> Pat
+intToPat = LitP . IntegerL . toInteger
+
+Which we can map over the initial list to get our [Pat]!
+初めのリストから繰り返し適用することで[Pat]が得られます。
+
+precompute xs = do
+  let name = mkName "lookupTable"
+      patterns = map intToPat xs
+  -- ...
+  return [FunD name clauses]
+  
+Our lookupTable function is only going to take a single argument, 
+lookupTable関数は単一引数のみ受け取りますが、
+so we'll want to map our integer Pats into Clause, going from our [Pat] -> [Clause]. 
+[Pat] -> [Clause]のようにIntのPatをClauseに対応させたいです。
+That will get use the clauses variable that we need. From above, a clause is defined like:
+必要な変数と節を取得します。上記によるとClauseは下記の定義となっています。
+
+data Clause = Clause [Pat] Body [Dec]
+
+So, our [Pat] is simple – we only have one literal value we're matching on. 
+[Pat]はマッチした値を1つしか持っていないので単純です。
+Body is defined to be either a GuardedB which uses pattern guards, or a NormalB which doesn't. 
+Bodyはパターンガードを使うGuardedBか使わないNormalBのいずれかとして定義されています。
+We could define our function in terms of a single clause with a GuardedB body, 
+BodyとしてGuardedBを使うことで単一の節として関数を定義することが出来きますが、
+but that sounds like more work, so we'll just use a NormalB body. 
+NormalBの方が、もっといい働きをしそうなのでNormalBを使います。
+The NormalB constructor takes an argument of type Exp. 
+NormalBはExp型の引数を1つ取ります。
+So let's dig in to the Exp documentation!
+ではExpのドキュメントを漁りましょう。
+
+There's a lot here. 
+たくさんあります。
+Looking above, we really just want to have a single thing – a literal! The precomputed value. 
+上記を見ると、事前に計算された値は単一のリテラルを持ちます。
+There's a LitE constructor which takes a Lit type. 
+LitEコンストラクタはLit型をとります。
+The Lit type has a constructor for DoublePrimL which takes a Rational, so we'll have to do a bit of conversion.
+LitはDoublePrimLコンストラクターを持っていますが、Rationalを引数としてとるので少し変換する必要があります。
+
+precomputeInteger :: Int -> Exp
+precomputeInteger = LitE . DoublePrimL . toRational . bigBadMathProblem
+
+We can get the Bodys for the Clauses by mapping this function over the list of arguments. 
+この関数に引数のリストを繰り返し適用することでClauseに必要なBodyを手に入れられます。
+The declarations will just be blank, so we're ready to create our clauses!
+まだ空白部分があります。ひとまず、これまでのを使うことで節を作成する準備が出来ました。
+
+precompute xs = do
+  let name = mkName "lookupTable"
+      patterns = map intToPat xs
+      fnBodies = map precomputeInteger xs
+      precomputedClauses = 
+        zipWith (\body pattern -> Clause [pattern] (NormalB body) []) fnBodies patterns
+  -- ......
+  return [FunD name clauses]
+  
+There's one thing left to do here. 
+まだ1つのやることが残っています。
+We need to create another clause with a variable x that we delegate to the function. 
+関数に移譲する変数xをもつ別の節を作る必要があります。
+Since we're introducing a local variable, we don't need to worry about being hygienic with our naming, 
+ローカル変数をつかっており、ネーミングについて心配する必要がないので、
+so we can use mkName again.
+もう一度、nkNameを使います。
+We will have to get a bit more complicated with our Body expression, 
+Bodyの表現をもう少し複雑にする必要があるので、
+since we've got an application to a function going on.
+関数の改良を続けます。
+
+precompute xs = do
+  let name = mkName "lookupTable"
+      patterns = map intToPat xs
+      fnBodies = map precomputeInteger xs
+      precomputedClauses =
+        zipWith (\body pattern -> Clause [pattern] (NormalB body) []) fnBodies patterns
+      x' = mkName "x"
+      lastClause = [Clause [VarP x'] (NormalB appBody) []]
+  -- ...
+      clauses = precomputedClauses ++ lastClause
+  return [FunD name clauses]
+
+Going back to the Exp type, we're now looking for something that captures the idea of application. 
+Exp型に戻ります。改良のいいアイディアを探しています。
+The Exp type has a data constructor AppE which takes two expressions and applies the second to the first. 
+Exp型はAppEというデータコンストラクタを持っています。それは、2つの表現をとり2つ目を1つ目に適用します。(f x xをfに適用する)
+That's precisely what we need! It also has a data constructor VarE which takes a Name argument. 
+ちょうど欲しかったものです。また、Nameを引数に取るVarEデータコンストラクタも持っています。
+That's all we need. Let's do it.
+欲しかったものはそろいました。続けましょう。
+
+precompute xs = do
+  let name = mkName "lookupTable"
+      patterns = map intToPat xs
+      fnBodies = map precomputeInteger xs
+      precomputedClauses = 
+        zipWith (\body pattern -> Clause [pattern] (NormalB body) []) fnBodies patterns
+      x' = mkName "x"
+      lastClause = [Clause [VarP x'] (NormalB appBody) []]
+      appBody = AppE (VarE (mkName "bigBadMathProblem")) (VarE x')
+      clauses = precomputedClauses ++ lastClause
+  return [FunD name clauses]
+  
+We did it! We wrangled up some Template Haskell and wrote ourselves a lookup table. 
+やりました。Template Haskellを使いこなして自分自身で検索表を書きました。
+Now, we'll want to splice it into the top level of our program with the $() splice syntax:
+それでは、$()接合構文を使ってプログラムのトップレベルで接合します。
+
+$(precompute [1..1000])
+
+As it happens, 
+あいにく、
+GHC is smart enough to know that a top level expression with the type Q [Dec] can be spliced without the explicit splicing syntax.
+GHCは賢いのでQ [Dec]型のトップレベルの表現は明示的な接合構文を使わなくても接合できます。
+Creating Haskell expressions using the data constructors is really easy, if a little verbose. 
+データコンストラクタを使ってHaskellの表現を作るのはいささか冗長ですが、とても簡単です。
+Let's look at a little more complicated example.
+もう少し複雑な例を見てみましょう。
+
+Boilerplate Be Gone!
+ボイラプレートよさようなら
+
+We're excited to be using the excellent users library with the persistent backend for the web application we're working on 
+我々が取り組んでいるwebアプリケーションのバックエンドとしてusersという素晴らしいライブラリをpersistentとともに使えていることに興奮しています。
+(source code located here, if you're curious). 
+興味があるなら、ここにソースコードがあります。
+It handles all kinds of stuff for us, taking care of a bunch of boilerplate and user related code. 
+ボイラープレートやユーザ関連のコードの面倒を見てくれるなど、様々な種類のものを扱ってくれます。
+It expects, as its first argument, a value that can be unwrapped and used to run a Persistent query. 
+usersの最初の引数はラップされていないPersistentのクエリとして実行できる値を期待します。
+It also operates in the IO monad. Right now, our application is setup to use a custom monad AppM which is defined like:
+そして、IOモナドの中で操作します。我々のアプリケーションでは下記のように定義した独自のモナドAppMを使っています。
+
+type AppM = ReaderT Config (EitherT ServantErr IO)
+
+So, to actually use the functions in the users library, we have to do this bit of fun business:
+実際にusersライブラリの中で関数を使うにはもう少し工夫が必要です。
+
+someFunc :: AppM [User]
+someFunc = do
+  connPool <- asks getPool
+  let conn = Persistent (`runSqlPool` connPool)
+  users <- liftIO (listUsers conn Nothing)
+  return (map snd users)
+
+That's going to get annoying quickly, 
+ちょっと面倒なので、
+so we start writing functions specific to our monad that we can call instead of doing all that lifting and wrapping.
+持ち上げたりラップしないで呼び出すことが出来る我々のモナドにあった関数を書き始めます。
+
+
+backend :: AppM Persistent
+backend = do
+  pool <- asks getPool
+  return (Persistent (`runSqlPool` pool))
+
+myListUsers :: Maybe (Int64, Int64) -> AppM [(LoginId, QLUser)]
+myListUsers m = do
+  b <- backend
+  liftIO (listUsers b m)
+
+myGetUserById :: LoginId -> AppM (Maybe QLUser)
+myGetUserById l = do
+  b <- backend
+  liftIO (getUserById b l)
+
+myUpdateUser :: LoginId -> (QLUser -> QLUser) -> AppM (Either UpdateUserError ())
+myUpdateUser id fn = do
+  b <- backend
+  liftIO (updateUser b id fn)
+
+ahh, totally mechanical code. just straight up boiler plate. 
+ああ、完全に機械的なコードです。まさにボイラープレートです。
+This is exactly the sort of thing I'd have metaprogrammed in Ruby. 
+ちょうど、Rubyにおいてメタプログラミングする種類のものです。
+So let's metaprogram it in Haskell!
+Haskellでもメタプログラミングを行いましょう。
+
+First, we'll want to simplify the expression. Let's use listUsers as the example. 
+最初に単純な表現のものが欲しいです。例として、listUsersを使いましょう。
+We'll make it as simple as possible – no infix operators, no do notation, etc.
+出来るだけシンプルにするため、中置演算子やdo記法は使いません。
+
+listUsersSimple m = (>>=) backend (\b -> liftIO (listUsers b m))
+
+Nice. To make it a little easier on seeing the AST, we can take it one step further. 
+いい感じです。ASTを確認するのが少し楽になりました。さらにもう一歩進めます。
+Let's explicitly show all function application by adding parentheses to make everything as explicit as possible.
+かっこを追加することで出来るだけ境界を明示的にし、関数適用をわかりやすくします。
+
+listUsersExplicit m =
+  ((>>=) backend) (\b -> liftIO ((listUsers b) m))
+
+The general formula that we're going for is:
+一般化した形式は下記のようになります。
+
+derivedFunction arg1 arg2 ... argn =
+  ((>>=) backend) 
+    (\b -> liftIO ((...(((function b) arg1) arg2)...) argn))
+
+We'll start by creating our deriveReader function, which will take as its first argument the backend function name.
+deriveReaderの作成から始めます。最初の引数としてbackend関数名をとります。
+
+deriveReader :: Name -> DecsQ
+deriveReader rd = 
+  mapM (decForFunc rd)
+    [ 'destroyUserBackend
+    , 'housekeepBackend
+    , 'getUserIdByName
+    , 'getUserById
+    , 'listUsers
+    , 'countUsers
+    , 'createUser
+    , 'updateUser
+    , 'updateUserDetails
+    , 'authUser
+    , 'deleteUser
+    ]
+
+This is our first bit of special syntax. 
+これが最初ですが、少し特殊な構文です。
+The single quote in 'destroyUserBackend is a shorthand way of saying mkName "destroyUserBackend" 
+シングルクォートのついた'destroyUserBackendはmkName "destroyUserBackend"の省略形です。
+Now, what we need is a function decForFunc, which has the signature Name -> Name -> Q Dec.
+そして、Name -> Name -> Q Dec型のdecForFuncが必要です。
+In order to do this, we'll need to get some information about the function we're trying to derive. 
+そのためには、導出しようとしている関数の情報を手にれる必要があります。
+
+Specifically, we need to know how many arguments the source function takes. 
+具体的には、元の関数がどのような引数をとるのか知る必要があります。
+There's a whole section in the Template Haskell documentation about ‘Querying the Compiler' which we can put to good use.
+Template HaskellのドキュメントにQuerying the Compilerというとても良いセクションがあります。
+
+The reify function returns a value of type Info. 
+reify関数はInfo型の値を返します。
+For type class operations, it has the data constructor ClassOpI with arguments Name, Type, ParentName, and Fixity. 
+型クラスの操作において引数がName, Type, ParentName, FixityであるClassOpIというデータコンストラクタがあります。
+None of these have the arity of the function directly…
+直接は関数のアリティを持っていません。。。
+
+I think it's time to do a bit of exploratory coding in the REPL. 
+REPLを使ってコードを調べるのにいいタイミングでしょう。
+We can fire up GHCi and start doing some Template Haskell with the following commands:
+GHCiを起動させて、下記コマンドでTemplate Haskellを有効にします。
+
+λ: :set -XTemplateHaskell 
+λ: import Language.Haskell.TH
+
+We can also do the following command, and it'll print out all of the generated code that it makes:
+作成したコードを出力するために、下記コマンドも追加します。
+
+λ: :set -ddump-splices
+
+Now, let's run reify on something simple and see the output!
+まずは、reifyを単純でわかりやすいのもので実行します。
+
+λ: reify 'id
+
+<interactive>:4:1:
+    No instance for (Show (Q Info)) arising from a use of ‘print'
+    In a stmt of an interactive GHCi command: print it
+
+Hmm.. No show instance. Fortunately, there's a workaround that can print out stuff in the Q monad:
+あーShowのインスタンスではありませんでした。幸運なことに、Qモナド内で出力が出来る迂回策があります。
+
+λ: $(stringE . show =<< reify 'id)
+"VarI 
+  GHC.Base.id 
+  (ForallT 
+    [KindedTV a_1627463132 StarT] 
+    [] 
+    (AppT 
+      (AppT ArrowT (VarT a_1627463132)) 
+      (VarT a_1627463132)
+    )
+  ) 
+  Nothing
+  (Fixity 9 InfixL)"
+
+I've formatted it a bit to make it a bit more legible. 
+読みやすくするために少し整形しました。
+We've got the Name, the Type, a Nothing value that is always Nothing, and the fixity of the function. 
+関数のName, Type, Nothingは常にNothing,Fixityを手に入れました。
+The Type seems pretty useful… 
+Typeは有用に見えますが。。。
+Let's look at the reify output for one of the class methods we're trying to work with:
+使おうとしているクラスのメソッドについてreifyの出力を見てみましょう。
+
+λ: $(stringE . show =<< reify 'Web.Users.Types.getUserById)
+"ClassOpI 
+  Web.Users.Types.getUserById 
+  (ForallT 
+    [KindedTV b_1627432398 StarT] 
+    [AppT (ConT Web.Users.Types.UserStorageBackend) (VarT b_1627432398)]
+    (ForallT 
+      [KindedTV a_1627482920 StarT]
+      [AppT (ConT Data.Aeson.Types.Class.FromJSON) (VarT a_1627482920),AppT (ConT Data.Aeson.Types.Class.ToJSON) (VarT a_1627482920)]
+      (AppT 
+        (AppT 
+          ArrowT 
+          (VarT b_1627432398)
+        )
+        (AppT 
+          (AppT
+            ArrowT 
+              (AppT 
+                (ConT Web.Users.Types.UserId)
+                (VarT b_1627432398)
+              )
+          )
+          (AppT 
+            (ConT GHC.Types.IO) 
+            (AppT 
+              (ConT GHC.Base.Maybe)
+              (AppT 
+                (ConT Web.Users.Types.User) 
+                (VarT a_1627482920)
+              )
+            )
+          )
+        )
+      )
+    )
+  ) 
+  Web.Users.Types.UserStorageBackend 
+  (Fixity 9 InfixL)"
+
+WOOOOH. That is a ton of text!! 
+おおー。大量のテキストです。
+We're mainly interested in the Type declaration, 
+主に型宣言に興味があり、
+and we can get a lot of information about what data constructors are used from the rather nice documentation. 
+ややいけてる文書から、どのようにデータコンストラクタが使われているかという情報を得ることが出来ます。
+Just like AppE is how we applied an expression to an expression, AppT is how we apply a type to a type. 
+AppEがどうやって表現を表現に適用していて、AppTはどうやって型から型に適用しているのでしょうか。
+ArrowT is the function arrow in the type signature.
+ArrowTは->の型シグネチャです。
+Just as an exercise, we'll go through the following type signature and transform it into something a bit like the above:
+練習として、下記の型シグネチャを通して、上記のような形に変換してみましょう。
+
+fmap :: 
+  ( a     ->  b)  ->     f a   ->   f b
+~ ((->)   a   b)  ->    (f a)  ->  (f b)
+~  (->) ((->) a   b)   ((f a)  ->  (f b))
+~  (->) ((->) a   b)   ((->) (f a) (f b))
+
+Ok, now all of our (->)s are written in prefix form. 
+->がすべて前置の形になりました。
+We'll replace the arrows with ArrowT, 
+->をArrowTに置き換えます。
+do explicit parentheses, 
+明示的にかっこを付けます。
+and put in the ApplyT constructors working from the innermost expressions out.
+そして、最も内側の表現にApplyTを置きます。
+
+~        (ArrowT (       (       ArrowT a) b)) (              (ArrowT (       f a)) (       f b))
+~        (ArrowT (       (ApplyT ArrowT a) b)) (              (ArrowT (ApplyT f a)) (ApplyT f b))
+~        (ArrowT (ApplyT (ApplyT ArrowT a) b)) (ApplyT (ApplyT ArrowT (ApplyT f a)) (ApplyT f b))
+~ ApplyT (ArrowT (ApplyT (ApplyT ArrowT a) b)) (ApplyT (ApplyT ArrowT (ApplyT f a)) (ApplyT f b))
+
+That got pretty out of hand and messy looking. 
+やや手に負えなくなり、見た目が悪くなりました。
+But, we have a good idea now of how we can get from one representation to the other.
+しかし、どうやって表現を変換しているかについていいアイディアを手に入れました。
+
+So, going from our type signature, 
+型シグネチャをみれば、
+it looks like we can figure out how we can get the arguments we need from the type! 
+どうやって引数から必要としている型を手に入れられるかが分かります。
+We'll pattern match on the type signature, 
+型シグネチャのパターンマッチをし、
+and if we see something that looks like the continuation of a type signature, 
+型シグネチャが継続しているようなら、
+we'll add one to a count and go deeper. 
+カウントアップし、奥に進んでいきます。
+Otherwise, we'll skip out.
+それ以外は飛ばします。
+
+The function definition looks like this:
+関数の定義は下記のようになります。
+
+functionLevels :: Type -> Int
+functionLevels = go 0
+  where
+    go :: Int -> Type -> Int
+    go n (AppT (AppT ArrowT _) rest) =
+      go (n+1) rest
+    go n (ForallT _ _          rest) =
+      go  n   rest
+    go n _                           =
+       n
+
+Neat! We can pattern match on these just like ordinary Haskell values. 
+普通のHaskellの様にパターンマッチが出来ます。
+Well, they are ordinary Haskell values, so that makes perfect sense.
+実際、普通のHaskellの値なので理に適っているんですがね。
+Lastly, we'll need a function that gets the type from an Info. 
+最後にInfoから型を得る関数が必要です。
+Not all Info have types, so we'll encode that with Maybe.
+すべてのInfoが型を持っているわけではないでMaybeで包みます。
+
+getType :: Info -> Maybe Type
+getType (ClassOpI _ t _ _) = Just t
+getType (DataConI _ t _ _) = Just t
+getType (VarI _ t _ _)     = Just t
+getType (TyVarI _ t)       = Just t
+getType _                  = Nothing
+
+Alright, we're ready to get started on that decForFunc function!! 
+これで、decForFunc関数を書き始められます。
+We'll go ahead and fill in what we know we need to do:
+まず、わかっているところからうめます。
+
+decForFunc :: Name -> Name -> Q Dec
+decForFunc reader fn = do
+  info <- reify fn
+  arity <- maybe (reportError "Unable to get arity of name" >> return 0)
+                 (return . functionLevels)
+                 (getType info)
+  -- ...
+  return (FunD fnName [Clause varPat (NormalB final) []])
+
+Arity acquired. 
+アリティは取得できました。
+Now, we'll want to get a list of new variable names corresponding with the function arguments. 
+関数の引数に対応する新しい変数の名前のリストを取得する必要があります。
+When we want to be hygienic with our variable names, 
+変数名に気を付ける必要があるので、
+we use the function newName which creates a totally unique variable name with the string prepended to it. 
+付加文字を付けることで完全にユニークな新しい名前を作成するnewName関数を使います。
+We want (arity - 1) new names, 
+アリティ-1個の新しい名前が欲しいので、
+since we'll be using the bound value from the reader function for the other one. 
+読み込んだ関数の束縛された値を別のもののために使います。
+We'll also want a name for the value we'll bind out of the lambda.
+ラムダに束縛された値の名前も欲しいです。
+
+varNames <- replicateM (arity - 1) (newName "arg")
+b <- newName "b"
+
+Next up is the new function name. 
+次は新しい関数の名前です。
+To keep a consistent API, we'll use the same name as the one in the actual package. 
+APIと一貫性を維持するために、実際のパッケージの名前と同じ名前を使用します。
+This will require us to import the other package qualified to avoid a name clash.
+このことは名前の衝突を避けるために別のパッケージをqualified付きでインポートすることを要求します。
+
+let fnName = mkName . nameBase $ fn
+
+nameBase has the type Name -> String, and gets the non-qualified name string for a given Name value. 
+nameBaseはName -> String型で、与えられたNameの値からqualifiedなしの名前の文字列を取得します。
+Then we mkName with the string, giving us a new, non-qualified name with the same value as the original function. 
+その文字列をmkNameに渡します。新しいqualifiedなしのもとの関数と同じ名前の値を得ます。
+This might be a bad idea? You probably want to provide a unique identifier. 
+これは悪いアイディアでしょうか？唯一の識別子を提供してほしいと思うでしょう。
+Module namespacing does a fine job of that, imo.
+私の考えではこれについてはModuleの名前空間がいい仕事をしてくれます。
+
+Next up, we'll want to apply the (>>=) function to the reader. 
+次に、読み込んだ関数に(>>=)を適用したいと思います。
+We'll then want to create a function which applies the bound expression to a lambda. 
+束縛された表現にラムダを適用する関数が欲しいです。
+Lambdas have an LamE constructor in the Exp type. 
+Exp型にLamEというラムダのコンストラクタがあります。
+They take a [Pat] to match on, and an Exp that represents the lambda body.
+LamEは[Pat]とラムダの実体を表現するためにExpをとります。
+
+bound  = AppE (VarE '(>>=)) (VarE reader)
+binder = AppE bound . LamE [VarP b] 
+
+So AppE bound . LamE [VarP b] is the exact same thing as (>>=) reader (\b -> ...)! Cool.
+AppE bound . LamE [VarP b]は(>>=) reader (\b -> ...)と同じです。素晴らしい。
+Next up, we'll need to create VarE values for all of the variables. 
+次に、すべての変数のためにVarEの値を作成する必要があります。
+Then, we'll need to apply all of the values to the VarE fn expression. 
+そして、すべてのパターンの変数をVarE fnに適用する必要があります。
+Function application binds to the left, so we'll have:
+関数は左に束縛するので、こうなります。
+
+fn       ~                   VarE fn
+fn a     ~             AppE (VarE fn) (VarE a)
+fn a b   ~       AppE (AppE (VarE fn) (VarE a)) (VarE b)
+fn a b c ~ AppE (AppE (AppE (VarE fn) (VarE a)) (VarE b)) (VarE c)
+
+This looks just like a left fold! 
+fold left です。
+Once we have that, we'll apply the fully applied fn expression to VarE 'liftIO, 
+いったん分かれば、すべての関数表現にVarE 'liftIOを適用できます。
+and finally bind it to the lambda.
+そして、最後にラムダに結びつけます。
+
+varExprs   = map VarE (b : varNames)
+fullExpr   = foldl AppE (VarE fn) varExprs
+liftedExpr = AppE (VarE 'liftIO) fullExpr
+final      = binder liftedExpr
+
+This produces our (>>=) reader (\b -> fn b arg1 arg2 ... argn) expression.
+(>>=) reader (\b -> fn b arg1 arg2 ... argn)という表現を生成します。
+The last thing we need to do is get our patterns. 
+最後に、パターンを手に入れる必要があります。
+This is just the list of variables we generated earlier.
+最初の方で作成した変数のリストのことです。
+
+varPat = map VarP varNames
+
+And now, the whole thing:
+そして、完成したものです。
+
+deriveReader :: Name -> DecsQ
+deriveReader rd =
+  mapM (decForFunc rd) 
+    [ 'destroyUserBackend
+    , 'housekeepBackend
+    , 'getUserIdByName
+    , 'getUserById
+    , 'listUsers
+    , 'countUsers
+    , 'createUser
+    , 'updateUser
+    , 'updateUserDetails
+    , 'authUser
+    , 'deleteUser
+    ]
+
+decForFunc :: Name -> Name -> Q Dec
+decForFunc reader fn = do
+  info <- reify fn
+  arity <- maybe (reportError "Unable to get arity of name" >> return 0)
+        (return . functionLevels) 
+        (getType info)
+  varNames <- replicateM (arity - 1) (newName "arg")
+  b <- newName "b"
+  let fnName     = mkName . nameBase $ fn
+      bound      = AppE (VarE '(>>=)) (VarE reader)
+      binder     = AppE bound . LamE [VarP b]
+      varExprs   = map VarE (b : varNames)
+      fullExpr   = foldl AppE (VarE fn) varExprs
+      liftedExpr = AppE (VarE 'liftIO) fullExpr
+      final      = binder liftedExpr
+      varPat     = map VarP varNames
+  return $ FunD fnName [Clause varPat (NormalB final) []]
+
+And we've now metaprogrammed a bunch of boilerplate away!
+メタプログラミングによってボイラープレートをなくせました。
+We've looked at the docs for Template Haskell, figured out how to construct values in Haskell's AST, 
+Template Haskellのドキュメントを見て自動でボイラープレートを作成することで、HaskellのASTがどうやって値を構築しているのかわかりました。
+and worked out how to do some work at compile time, as well as automate some boilerplate. 
+そして、コンパイル時にどのようなことをしているか理解しました。
+I'm excited to learn more about the magic of defining quasiquoters and more advanced Template Haskell constructs, 
+quasiquotersの定義の魔法について学ぶことが出来、そしてより発展しTemplate Haskellでの構築が出来たことに興奮しています。
+but even a super basic “build expressions and declarations using data constructors” approach is very useful. 
+しかし、基本である構築表現とデータコンストラクタを使った宣言はとても有用であるのは変わりません。
+Hopefully, you'll find this as useful as I did.
+願わくば、ここから有益な情報を見つけてください。
